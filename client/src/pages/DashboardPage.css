@@ -1,0 +1,131 @@
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.welcome-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.welcome-avatar {
+  font-size: 3rem;
+}
+
+.welcome-sub {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.dashboard-xp {
+  margin-bottom: 2rem;
+}
+
+.dashboard-section {
+  margin-top: 2.5rem;
+}
+
+.dashboard-section h2 {
+  margin-bottom: 1.25rem;
+  font-size: 1.3rem;
+}
+
+/* Mission Progress Cards */
+.mission-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.mission-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.mission-emoji {
+  font-size: 2.2rem;
+}
+
+.mission-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.mission-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.mission-card-stats strong {
+  color: var(--accent-cyan);
+}
+
+.mission-not-played {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Challenges */
+.challenges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.challenge-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+}
+
+.challenge-info h4 {
+  font-size: 0.95rem;
+  margin: 0.3rem 0 0.15rem;
+}
+
+.challenge-info p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.challenge-rewards {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  color: var(--accent-gold);
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .challenge-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .challenge-rewards {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
