@@ -18,30 +18,36 @@
 .hud-score,
 .hud-timer,
 .hud-lives {
-  background: rgba(5, 5, 16, 0.7);
+  background: rgba(2, 0, 16, 0.75);
   backdrop-filter: blur(8px);
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(77, 159, 255, 0.15);
+  border: 1px solid rgba(77, 159, 255, 0.2);
   text-align: center;
+  min-width: 90px;
 }
 
 .hud-label {
   display: block;
   font-family: var(--font-display);
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: rgba(77, 159, 255, 0.6);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.15rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.2rem;
 }
 
 .hud-value {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-primary);
+}
+
+.hud-hearts {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
 }
 
 .hud-timer-low .hud-value {
@@ -49,42 +55,64 @@
   animation: pulse 0.5s ease infinite;
 }
 
+/* Center reticle */
+.hud-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  animation: reticlePulse 2s ease-in-out infinite;
+}
+
+@keyframes reticlePulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Combo display */
 .hud-combo {
   position: absolute;
   top: 50%;
-  right: 1.5rem;
+  right: 2rem;
   transform: translateY(-50%);
   text-align: center;
+  background: rgba(2, 0, 16, 0.6);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .combo-count {
   display: block;
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 900;
   background: var(--gradient-gold);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: none;
+  line-height: 1;
 }
 
 .combo-multiplier {
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   color: var(--accent-gold);
+  letter-spacing: 0.05em;
 }
 
+/* Legend bar */
 .hud-legend {
   position: absolute;
   bottom: 0.75rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 1rem;
-  background: rgba(5, 5, 16, 0.7);
+  gap: 1.2rem;
+  background: rgba(2, 0, 16, 0.7);
   backdrop-filter: blur(8px);
-  padding: 0.4rem 1rem;
+  padding: 0.4rem 1.2rem;
   border-radius: var(--radius-md);
   border: 1px solid rgba(77, 159, 255, 0.1);
 }
@@ -92,9 +120,11 @@
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.7rem;
+  gap: 0.35rem;
+  font-size: 0.65rem;
   color: var(--text-secondary);
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
 }
 
 .legend-dot {
@@ -104,10 +134,54 @@
   display: inline-block;
 }
 
+/* Scanline overlay for sci-fi feel */
+.hud-scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+/* Corner brackets for military/sci-fi feel */
+.hud::before,
+.hud::after {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-color: rgba(77, 159, 255, 0.15);
+  border-style: solid;
+}
+
+.hud::before {
+  bottom: 0.5rem;
+  left: 0.5rem;
+  border-width: 0 0 2px 2px;
+}
+
+.hud::after {
+  bottom: 0.5rem;
+  right: 0.5rem;
+  border-width: 0 2px 2px 0;
+}
+
 @media (max-width: 768px) {
   .hud-legend {
     gap: 0.5rem;
-    font-size: 0.6rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .legend-item {
+    font-size: 0.55rem;
   }
 
   .hud-value {
@@ -116,5 +190,9 @@
 
   .combo-count {
     font-size: 1.5rem;
+  }
+
+  .hud-reticle {
+    display: none;
   }
 }

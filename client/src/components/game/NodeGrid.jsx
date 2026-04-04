@@ -1,12 +1,21 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import useGameStore from '../../store/gameStore.js';
 import Node from './Node.jsx';
 
 /**
- * Manages spawning and positioning of game objects on the 3D grid.
- * Uses useFrame for the game loop (timer, spawning waves).
+ * Manages the game loop: spawning objects that fly TOWARD the camera
+ * from deep space (z = -50) to the player (z = 15).
  */
+
+const OBJECT_TYPES = [
+  'asteroid', 'asteroid', 'asteroid', 'asteroid',
+  'drone', 'drone',
+  'energy',
+  'stardust',
+  'mine',
+];
+
 const NodeGrid = () => {
   const status = useGameStore((s) => s.status);
   const gameObjects = useGameStore((s) => s.gameObjects);
@@ -18,36 +27,35 @@ const NodeGrid = () => {
   const missObject = useGameStore((s) => s.missObject);
 
   const spawnTimerRef = useRef(0);
-  const objectTypes = ['asteroid', 'asteroid', 'asteroid', 'drone', 'energy', 'stardust', 'mine'];
 
-  // Game loop — runs every frame
   useFrame((_, delta) => {
     if (status !== 'playing' || !missionConfig) return;
 
-    // Update timer
+    // Update game timer
     tick(delta);
 
-    // Spawn new objects periodically
+    // Spawn objects at intervals
     spawnTimerRef.current += delta;
-    const spawnInterval = Math.max(0.8, 2.5 - currentWave * 0.1 * (missionConfig.speed || 1));
+    const baseInterval = 2.0;
+    const speedFactor = missionConfig.speed || 1;
+    const waveAcceleration = Math.min(currentWave * 0.05, 0.8);
+    const spawnInterval = Math.max(0.5, baseInterval - waveAcceleration) / speedFactor;
 
     if (spawnTimerRef.current >= spawnInterval) {
       spawnTimerRef.current = 0;
 
-      // Determine how many objects to spawn
       const { min, max } = missionConfig.objectsPerWave || { min: 2, max: 4 };
       const count = Math.floor(Math.random() * (max - min + 1)) + min;
 
       for (let i = 0; i < count; i++) {
-        // Random type weighted toward asteroids
-        const type = objectTypes[Math.floor(Math.random() * objectTypes.length)];
+        const type = OBJECT_TYPES[Math.floor(Math.random() * OBJECT_TYPES.length)];
 
-        // Random position on a grid area
-        const x = (Math.random() - 0.5) * 10;
-        const z = (Math.random() - 0.5) * 8;
-        const y = 0.5;
+        // Spawn far away in 3D space — spread across X and Y
+        const x = (Math.random() - 0.5) * 20;
+        const y = (Math.random() - 0.5) * 12;
+        const z = -40 - Math.random() * 20; // Deep in space
 
-        const speed = (0.5 + Math.random() * 0.5) * (missionConfig.speed || 1);
+        const speed = (1.5 + Math.random() * 1.5) * speedFactor;
         spawnObject(type, [x, y, z], speed);
       }
 
@@ -55,7 +63,6 @@ const NodeGrid = () => {
     }
   });
 
-  // Handle object timeout (auto-remove after lifetime)
   const handleMiss = useCallback(
     (id, type) => {
       missObject(id, type);
@@ -65,10 +72,9 @@ const NodeGrid = () => {
 
   return (
     <group>
-      {/* Grid floor lines for reference */}
-      <gridHelper args={[20, 20, '#1a1a4a', '#0a0a2a']} position={[0, -0.5, 0]} />
+      {/* Tunnel/path lines for depth reference */}
+      <DepthGuides />
 
-      {/* Render active game objects */}
       {gameObjects.map((obj) => (
         <Node
           key={obj.id}
@@ -79,6 +85,63 @@ const NodeGrid = () => {
           onMiss={handleMiss}
         />
       ))}
+    </group>
+  );
+};
+
+/**
+ * Subtle grid/tunnel lines to give a sense of 3D depth and motion.
+ */
+const DepthGuides = () => {
+  const linesRef = useRef();
+
+  // Create tunnel-like guide lines extending into the distance
+  const points = [];
+  const lineCount = 8;
+  const radius = 14;
+
+  for (let i = 0; i < lineCount; i++) {
+    const angle = (i / lineCount) * Math.PI * 2;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    points.push(
+      [x, y, 20],
+      [x * 0.1, y * 0.1, -60]
+    );
+  }
+
+  return (
+    <group>
+      {Array.from({ length: lineCount }).map((_, i) => {
+        const angle = (i / lineCount) * Math.PI * 2;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+
+        return (
+          <line key={i}>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                count={2}
+                array={new Float32Array([x, y, 20, x * 0.05, y * 0.05, -60])}
+                itemSize={3}
+              />
+            </bufferGeometry>
+            <lineBasicMaterial color="#1a1a4a" transparent opacity={0.3} />
+          </line>
+        );
+      })}
+
+      {/* Cross rings at intervals for depth reference */}
+      {[-10, -25, -40].map((z, i) => {
+        const scale = 1 + (z + 40) / 40 * 0.8;
+        return (
+          <mesh key={`ring-${i}`} position={[0, 0, z]} rotation={[0, 0, 0]}>
+            <ringGeometry args={[6 * scale, 6.1 * scale, 32]} />
+            <meshBasicMaterial color="#1a1a5a" transparent opacity={0.15} side={2} />
+          </mesh>
+        );
+      })}
     </group>
   );
 };
