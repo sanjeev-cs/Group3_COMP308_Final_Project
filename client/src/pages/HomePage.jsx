@@ -61,9 +61,9 @@ const HomePage = () => {
       <section className="missions-section container">
         <h2>Missions</h2>
         {[
-          { diff: 'easy',   name: 'Asteroid Belt',  desc: 'Slow speed tunnel. Learn the controls.' },
-          { diff: 'medium', name: 'Drone Swarm',    desc: 'Faster enemies that actively weave through the tube towards you.' },
-          { diff: 'hard',   name: 'Meteor Storm',   desc: '45 seconds of maximum density. Good luck.' },
+          { diff: 'easy',   name: 'The Minefield',  desc: 'Classic survival. Learn to dodge massive meteors and mines.' },
+          { diff: 'medium', name: 'Alien Swarm',    desc: 'Faster enemies including Buster Drones and Alien Metroids.' },
+          { diff: 'hard',   name: 'The Absurd Threat', desc: 'Maximum speed! Survive the Boss and Angry Bird.' },
         ].map(m => (
           <div key={m.name} className="mission-row">
             <span className={`mission-diff ${m.diff}`} />

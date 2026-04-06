@@ -8,9 +8,15 @@ import GameCanvas from '../components/game/GameCanvas.jsx';
 import './GamePage.css';
 
 const CONFIGS = {
-  1: { duration: 60, waves: 8,  objectsPerWave: { min: 1, max: 2 }, speed: 0.8 },
-  2: { duration: 50, waves: 12, objectsPerWave: { min: 2, max: 3 }, speed: 1.0 },
-  3: { duration: 45, waves: 15, objectsPerWave: { min: 2, max: 4 }, speed: 1.3 },
+  1: { duration: 60, waves: 8,  objectsPerWave: { min: 1, max: 2 }, speed: 0.8, pool: ['asteroid', 'mine'] },
+  2: { duration: 50, waves: 12, objectsPerWave: { min: 2, max: 3 }, speed: 1.0, pool: ['drone', 'alien'] },
+  3: { duration: 45, waves: 15, objectsPerWave: { min: 2, max: 4 }, speed: 1.3, pool: ['boss', 'funny'] },
+};
+
+const UI_OVERRIDES = {
+  1: { name: 'The Minefield', desc: 'Classic survival. Learn to dodge meteors and mines.' },
+  2: { name: 'Alien Swarm', desc: 'Faster enemies including Buster Drones and Alien Metroids.' },
+  3: { name: 'The Absurd Threat', desc: 'Maximum speed! Survive the Boss and Angry Bird.' },
 };
 
 const GamePage = () => {
@@ -107,15 +113,16 @@ const GamePage = () => {
 
       <div className="mission-list">
         {missions.map(m => {
-          const locked = user.level < m.requiredLevel;
+          const locked = false; // Unlocked from the beginning
           const dc = m.difficulty.toLowerCase();
+          const ui = UI_OVERRIDES[m.id] || m;
           return (
             <div key={m.id} className={`mission-item ${locked ? 'locked' : ''}`}>
               <div className="mission-item-head">
                 <span className={`badge badge-${dc}`}>{m.difficulty}</span>
-                <h2>{m.name}</h2>
+                <h2>{ui.name}</h2>
               </div>
-              <p>{m.description}</p>
+              <p>{ui.desc}</p>
               <div className="mission-meta">
                 <span>{m.duration}s</span>
                 <span>{m.waves} waves</span>

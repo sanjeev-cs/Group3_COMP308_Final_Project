@@ -1,6 +1,7 @@
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, Clone, useAnimations } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import useGameStore from '../../store/gameStore.js';
 import HUD from './HUD.jsx';
@@ -85,10 +86,26 @@ const Ship = ({ posRef }) => {
 // ─── BULLETS & COMBAT ─────────────────────────────
 const BULLET_SPEED = 150;
 const TYPES = {
-  asteroid: { color: '#78716c', scale: 0.45 }, // Increased meteor size
-  drone:    { color: '#ef4444', scale: 1.0 },
-  mine:     { color: '#f59e0b', scale: 0.9 },
-  stardust: { color: '#34d399', scale: 0.8 },
+  asteroid: { color: '#78716c', scale: 3.0 },
+  drone:    { color: '#ef4444', scale: 1.0 }, 
+  mine:     { color: '#f59e0b', scale: 1.8 },
+  alien:    { color: '#34d399', scale: 0.3 },
+  boss:     { color: '#ef4444', scale: 0.3 },
+  funny:    { color: '#fcd34d', scale: 1.5 },
+};
+
+const BulletModel = () => {
+  const gltf = useGLTF('/models/fireball.glb');
+  const clone = useMemo(() => {
+    const c = gltf.scene.clone(true);
+    c.traverse(child => {
+      if (child.isMesh) {
+        child.material = new THREE.MeshBasicMaterial({ color: '#f59e0b' });
+      }
+    });
+    return c;
+  }, [gltf.scene]);
+  return <primitive object={clone} scale={0.2} rotation={[Math.PI / 2, 0, 0]} />;
 };
 
 const Bullet = ({ id, x, y, z, onDone, registerTarget }) => {
@@ -105,19 +122,52 @@ const Bullet = ({ id, x, y, z, onDone, registerTarget }) => {
     if (ref.current.position.z < SPAWN_Z) onDone(id);
   });
   return (
-    <mesh ref={ref} position={[x, y, z]}>
-      <sphereGeometry args={[0.2, 8, 8]} />
-      <meshBasicMaterial color="#f59e0b" />
-    </mesh>
+    <group ref={ref} position={[x, y, z]}>
+      <BulletModel />
+      <pointLight color="#f59e0b" intensity={6} distance={6} />
+    </group>
   );
 };
 
-// Meteor model loader wrapper so useGLTF happens unconditionally in GameCanvas context
-const AsteroidModel = ({ scale }) => {
-  const { scene } = useGLTF('/models/meteor.glb');
-  const clone = useMemo(() => scene.clone(true), [scene]);
-  return <primitive object={clone} scale={scale} />;
+// ─── DYNAMIC MODEL LOADERS ───────────────────────
+const AsteroidModel = ({ scale }) => { const { scene } = useGLTF('/models/meteor.glb'); return <Clone object={scene} scale={scale} />; };
+const DroneModel    = ({ scale }) => { const { scene } = useGLTF('/models/buster_drone.glb'); return <Clone object={scene} scale={scale} />; };
+const MineModel     = ({ scale }) => { const { scene } = useGLTF('/models/mine.glb'); return <Clone object={scene} scale={scale} />; };
+const AlienModel = ({ scale }) => { 
+  const { scene, animations } = useGLTF('/models/aliens/king_boo.glb'); 
+  const group = useRef();
+  const { actions } = useAnimations(animations, group);
+  
+  useEffect(() => {
+    if (actions && Object.keys(actions).length > 0) {
+      const keys = Object.keys(actions);
+      let target = keys.find(k => k.toLowerCase().includes('dance') || k.toLowerCase().includes('fly') || k.toLowerCase().includes('attack'));
+      if (!target) target = keys[0];
+      actions[target].reset().play();
+    }
+  }, [actions]);
+
+  return <group ref={group}><Clone object={scene} scale={scale} /></group>; 
 };
+
+const BossModel = ({ scale }) => { 
+  const { scene, animations } = useGLTF('/models/Boss.glb'); 
+  const group = useRef();
+  const { actions } = useAnimations(animations, group);
+  
+  useEffect(() => {
+    if (actions && Object.keys(actions).length > 0) {
+      const keys = Object.keys(actions);
+      let target = keys.find(k => k.toLowerCase().includes('attack') || k.toLowerCase().includes('hit'));
+      if (!target) target = keys[0];
+      actions[target].reset().play();
+    }
+  }, [actions]);
+
+  return <group ref={group}><Clone object={scene} scale={scale} /></group>; 
+};
+
+const FunnyModel    = ({ scale }) => { const { scene } = useGLTF('/models/angrybird_chuck.glb'); return <Clone object={scene} scale={scale} />; };
 
 const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   const ref = useRef();
@@ -129,13 +179,16 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
     return () => registerTarget(id, null);
   }, [id, registerTarget]);
 
-  const geo = useMemo(() => {
+  const ModelNode = useMemo(() => {
     switch (type) {
-      case 'drone':    return <octahedronGeometry args={[1, 0]} />;
-      case 'mine':     return <dodecahedronGeometry args={[1, 0]} />;
-      default:         return <sphereGeometry args={[1, 16, 16]} />;
+      case 'drone':    return <DroneModel scale={cfg.scale} />;
+      case 'mine':     return <MineModel scale={cfg.scale} />;
+      case 'alien':    return <AlienModel scale={cfg.scale} />;
+      case 'boss':     return <BossModel scale={cfg.scale} />;
+      case 'funny':    return <FunnyModel scale={cfg.scale} />;
+      default:         return <AsteroidModel scale={cfg.scale} />;
     }
-  }, [type]);
+  }, [type, cfg.scale]);
 
   useFrame((state, d) => {
     if (!ref.current || !alive.current) return;
@@ -150,8 +203,10 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
       ref.current.position.y *= (MOVEMENT_BOUND/dist);
     }
 
-    ref.current.rotation.x += d * 2;
-    ref.current.rotation.y += d;
+    if (type === 'asteroid' || type === 'mine') {
+      ref.current.rotation.x += d * 2;
+      ref.current.rotation.y += d;
+    }
 
     if (ref.current.position.z > MISS_Z) {
       alive.current = false;
@@ -161,15 +216,8 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
 
   return (
     <group ref={ref} position={[px,py,pz]}>
-      {type === 'asteroid' ? (
-        <AsteroidModel scale={cfg.scale} />
-      ) : (
-        <mesh scale={cfg.scale}>
-          {geo}
-          <meshStandardMaterial color={cfg.color} roughness={0.8} />
-        </mesh>
-      )}
-      <pointLight color={cfg.color} intensity={type==='stardust'?2.5:0} distance={6} />
+      {ModelNode}
+      <pointLight color={cfg.color} intensity={type==='boss'?2.5:0} distance={6} />
     </group>
   );
 };
@@ -219,7 +267,6 @@ const Boom = ({ x, y, z, color }) => {
 };
 
 // ─── GAME LOGIC MGR ───────────────────────────────
-const POOL = ['asteroid','asteroid','drone','mine'];
 
 const GameLogic = ({ shipPos }) => {
   const status = useGameStore(s=>s.status);
@@ -320,10 +367,16 @@ const GameLogic = ({ shipPos }) => {
     if (stRef.current > 1.0 && objs.length < 3) {
       stRef.current = 0;
       // Only spawn 1 object at a time so it never exceeds 3
-      const type = POOL[Math.floor(Math.random()*POOL.length)];
+      const P = cfg.pool || ['asteroid', 'mine'];
+      const type = P[Math.floor(Math.random()*P.length)];
       const r = Math.random() * MOVEMENT_BOUND;
       const th = Math.random() * Math.PI * 2;
-      spawn(type, [r * Math.cos(th), r * Math.sin(th), SPAWN_Z], 2 + Math.random()*(cfg.speed || 1));
+      
+      let speedMult = 2;
+      if (type === 'funny') speedMult = 6.5; // Chuck is extremely fast
+      if (type === 'boss') speedMult = 1.0; // Boss is slower but huge
+      
+      spawn(type, [r * Math.cos(th), r * Math.sin(th), SPAWN_Z], speedMult + Math.random()*(cfg.speed || 1));
       adv();
     }
   });
@@ -362,9 +415,6 @@ const MouseControls = ({ posRef }) => {
 const GameCanvas = () => {
   const shipPos = useRef(new THREE.Vector3(0, 0, SHIP_Z));
 
-  // Preload the massive 70MB model so it doesn't crash mid-game
-  useGLTF.preload('/models/meteor.glb');
-
   return (
     <div className="game-canvas-wrapper" id="game-canvas">
       <Canvas
@@ -378,6 +428,10 @@ const GameCanvas = () => {
         <pointLight position={[0, 0, 10]} intensity={12} color="#ffffff" distance={200} decay={1.5} />
         <pointLight position={[0, 0, -50]} intensity={15} color="#f59e0b" distance={150} decay={1.5} />
         <ambientLight intensity={1.5} color="#ffffff" />
+
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.4} luminanceSmoothing={0.9} intensity={1.5} />
+        </EffectComposer>
 
         <MouseControls posRef={shipPos} />
         <Tunnel />

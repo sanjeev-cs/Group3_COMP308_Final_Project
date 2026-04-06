@@ -81,6 +81,18 @@ const useGameStore = create((set, get) => ({
         scoreAdd = 20;
         comboAdd = 1;
         break;
+      case 'alien':
+        scoreAdd = 30;
+        comboAdd = 1;
+        break;
+      case 'funny':
+        scoreAdd = 50;
+        comboAdd = 1;
+        break;
+      case 'boss':
+        scoreAdd = 100;
+        comboAdd = 1;
+        break;
       case 'energy':
         scoreAdd = 15;
         comboAdd = 1;
@@ -96,6 +108,8 @@ const useGameStore = create((set, get) => ({
         comboAdd = -state.combo; // Reset combo
         break;
       default:
+        scoreAdd = 10;
+        comboAdd = 1;
         break;
     }
 
@@ -123,7 +137,7 @@ const useGameStore = create((set, get) => ({
   // Object reached the station (missed)
   missObject: (id, type) => {
     const state = get();
-    if (type === 'asteroid' || type === 'drone') {
+    if (['asteroid', 'drone', 'alien', 'boss', 'funny'].includes(type)) {
       const newLives = state.lives - 1;
       set({
         lives: newLives,

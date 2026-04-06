@@ -1,7 +1,7 @@
 .game-page { min-height: calc(100vh - 52px); }
 
 /* Active game */
-.game-active { padding: 0; height: calc(100vh - 52px); }
+.game-active { padding: 0; height: 100vh; }
 .game-active .game-canvas-wrapper { height: 100%; }
 
 /* Mission select */
