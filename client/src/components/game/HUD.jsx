@@ -59,8 +59,7 @@ const HUD = () => {
         ))}
       </div>
 
-      {/* Crosshair */}
-      <div className="hud-cross" />
+      {/* Crosshair (Moved to 3D) */}
 
       {/* Score popups */}
       <div className="hud-popups">

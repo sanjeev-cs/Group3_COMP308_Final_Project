@@ -1,7 +1,6 @@
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, Clone, useAnimations } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useGLTF, Clone, useAnimations, Center } from '@react-three/drei';
 import * as THREE from 'three';
 import useGameStore from '../../store/gameStore.js';
 import HUD from './HUD.jsx';
@@ -16,36 +15,58 @@ const MISS_Z = 15;
 const SMOOTH = 0.12;
 const MOVEMENT_BOUND = TUNNEL_RADIUS - 1.5;
 
-// ─── THE TUNNEL ENVIRONMENT ───────────────────────
+// ─── THE SPACE TUNNEL ENVIRONMENT ───────────────────────
 const Tunnel = () => {
   const tex = useMemo(() => {
-    const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+    const c = document.createElement('canvas'); 
+    c.width = 1024; c.height = 1024;
     const x = c.getContext('2d');
-    x.fillStyle = '#0c0a09'; x.fillRect(0,0,512,512);
     
-    x.fillStyle = '#3f3f46';
-    for(let i=0; i<60; i++) {
-        x.fillRect(0, Math.random()*512, 512, Math.random()*8 + 2);
+    // Deep Space void (pitch black with subtle deep nebula gradient)
+    x.fillStyle = '#000005'; 
+    x.fillRect(0, 0, 1024, 1024);
+
+    let gradient = x.createLinearGradient(0, 0, 0, 1024);
+    gradient.addColorStop(0, "rgba(30, 20, 60, 0.4)"); 
+    gradient.addColorStop(0.5, "rgba(10, 20, 40, 0.4)"); 
+    gradient.addColorStop(1, "rgba(30, 20, 60, 0.4)");
+    x.fillStyle = gradient;
+    x.fillRect(0, 0, 1024, 1024);
+    
+    // Generate massive starfield streaming at warp speed
+    for (let i = 0; i < 1500; i++) {
+      const sx = Math.random() * 1024;
+      const sy = Math.random() * 1024;
+      // Stars stretch wildly along the Y-axis mimicking hyperspace jump strings
+      const length = 20 + Math.random() * 150;
+      const thickness = 1 + Math.random() * 3;
+      
+      const rColor = Math.random();
+      if (rColor > 0.9) x.fillStyle = '#60a5fa'; // neon blue stars
+      else if (rColor > 0.8) x.fillStyle = '#c084fc'; // purple stars
+      else x.fillStyle = '#ffffff'; // white core stars
+      
+      x.globalAlpha = 0.3 + Math.random() * 0.7;
+      x.fillRect(sx, sy, thickness, length);
     }
-    x.fillStyle = '#f59e0b';
-    for(let i=0; i<15; i++) {
-        x.fillRect(0, Math.random()*512, 512, Math.random()*4 + 1);
-    }
+    
+    x.globalAlpha = 1.0;
     const t = new THREE.CanvasTexture(c);
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(4, 40);
+    t.repeat.set(2, 4); // Stretch it huge
     return t;
   }, []);
 
   const ref = useRef();
   useFrame((_, d) => {
-    if (ref.current) ref.current.material.map.offset.y -= d * 4.0;
+    if (ref.current) ref.current.material.map.offset.y -= d * 3.0;
   });
 
   return (
     <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]}>
-      <cylinderGeometry args={[TUNNEL_RADIUS, TUNNEL_RADIUS, TUNNEL_LENGTH * 2, 32, 1, true]} />
-      <meshStandardMaterial map={tex} color="#a8a29e" emissive="#1c1917" roughness={0.3} metalness={0.5} side={THREE.BackSide} />
+      {/* Massive visual radius so it doesn't feel like a tight pipe, but an open expanse! */}
+      <cylinderGeometry args={[40, 40, 200, 32, 1, true]} />
+      <meshBasicMaterial map={tex} side={THREE.BackSide} />
     </mesh>
   );
 };
@@ -83,15 +104,31 @@ const Ship = ({ posRef }) => {
   );
 };
 
+const Crosshair3D = ({ posRef }) => {
+  const ref = useRef();
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.position.set(posRef.current.x, posRef.current.y, -40);
+    }
+  });
+
+  return (
+    <mesh ref={ref}>
+      <ringGeometry args={[0.3, 0.4, 32]} />
+      <meshBasicMaterial color="#ef4444" transparent opacity={0.6} side={THREE.DoubleSide} depthTest={false} />
+    </mesh>
+  );
+};
+
 // ─── BULLETS & COMBAT ─────────────────────────────
 const BULLET_SPEED = 150;
 const TYPES = {
-  asteroid: { color: '#78716c', scale: 3.0 },
-  drone:    { color: '#ef4444', scale: 1.0 }, 
-  mine:     { color: '#f59e0b', scale: 1.8 },
-  alien:    { color: '#34d399', scale: 0.3 },
-  boss:     { color: '#ef4444', scale: 0.3 },
-  funny:    { color: '#fcd34d', scale: 1.5 },
+  meteor:    { color: '#78716c', scale: 1.8 },
+  mine:      { color: '#f59e0b', scale: 0.8 },
+  ghost_boy: { color: '#ef4444', scale: 1.0 }, 
+  king_boo:  { color: '#34d399', scale: 0.005 },
+  boss:      { color: '#ef4444', scale: 0.3 },
+  chuck:     { color: '#fcd34d', scale: 1.5 },
 };
 
 const BulletModel = () => {
@@ -130,9 +167,24 @@ const Bullet = ({ id, x, y, z, onDone, registerTarget }) => {
 };
 
 // ─── DYNAMIC MODEL LOADERS ───────────────────────
-const AsteroidModel = ({ scale }) => { const { scene } = useGLTF('/models/meteor.glb'); return <Clone object={scene} scale={scale} />; };
-const DroneModel    = ({ scale }) => { const { scene } = useGLTF('/models/buster_drone.glb'); return <Clone object={scene} scale={scale} />; };
-const MineModel     = ({ scale }) => { const { scene } = useGLTF('/models/mine.glb'); return <Clone object={scene} scale={scale} />; };
+const AsteroidModel = ({ scale }) => { const { scene } = useGLTF('/models/meteor.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
+const DroneModel = ({ scale }) => { 
+  const { scene, animations } = useGLTF('/models/aliens/ghost_boy.glb'); 
+  const group = useRef();
+  const { actions } = useAnimations(animations, group);
+  
+  useEffect(() => {
+    if (actions && Object.keys(actions).length > 0) {
+      const keys = Object.keys(actions);
+      let target = keys.find(k => k.toLowerCase().includes('fly') || k.toLowerCase().includes('float') || k.toLowerCase().includes('run') || k.toLowerCase().includes('walk'));
+      if (!target) target = keys[0];
+      actions[target].reset().play();
+    }
+  }, [actions]);
+
+  return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
+};
+const MineModel     = ({ scale }) => { const { scene } = useGLTF('/models/mine.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
 const AlienModel = ({ scale }) => { 
   const { scene, animations } = useGLTF('/models/aliens/king_boo.glb'); 
   const group = useRef();
@@ -147,7 +199,7 @@ const AlienModel = ({ scale }) => {
     }
   }, [actions]);
 
-  return <group ref={group}><Clone object={scene} scale={scale} /></group>; 
+  return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
 };
 
 const BossModel = ({ scale }) => { 
@@ -164,10 +216,10 @@ const BossModel = ({ scale }) => {
     }
   }, [actions]);
 
-  return <group ref={group}><Clone object={scene} scale={scale} /></group>; 
+  return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
 };
 
-const FunnyModel    = ({ scale }) => { const { scene } = useGLTF('/models/angrybird_chuck.glb'); return <Clone object={scene} scale={scale} />; };
+const FunnyModel    = ({ scale }) => { const { scene } = useGLTF('/models/angrybird_chuck.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
 
 const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   const ref = useRef();
@@ -181,12 +233,12 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
 
   const ModelNode = useMemo(() => {
     switch (type) {
-      case 'drone':    return <DroneModel scale={cfg.scale} />;
-      case 'mine':     return <MineModel scale={cfg.scale} />;
-      case 'alien':    return <AlienModel scale={cfg.scale} />;
-      case 'boss':     return <BossModel scale={cfg.scale} />;
-      case 'funny':    return <FunnyModel scale={cfg.scale} />;
-      default:         return <AsteroidModel scale={cfg.scale} />;
+      case 'ghost_boy': return <DroneModel scale={cfg.scale} />;
+      case 'mine':      return <MineModel scale={cfg.scale} />;
+      case 'king_boo':  return <AlienModel scale={cfg.scale} />;
+      case 'boss':      return <BossModel scale={cfg.scale} />;
+      case 'chuck':     return <FunnyModel scale={cfg.scale} />;
+      default:          return <AsteroidModel scale={cfg.scale} />;
     }
   }, [type, cfg.scale]);
 
@@ -203,7 +255,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
       ref.current.position.y *= (MOVEMENT_BOUND/dist);
     }
 
-    if (type === 'asteroid' || type === 'mine') {
+    if (type === 'meteor' || type === 'mine') {
       ref.current.rotation.x += d * 2;
       ref.current.rotation.y += d;
     }
@@ -362,19 +414,17 @@ const GameLogic = ({ shipPos }) => {
       }
     }
 
-    // Strict Spawn Limiter: maximum of 3 objects on screen to prevent massive frame drops
     stRef.current += d;
     if (stRef.current > 1.0 && objs.length < 3) {
       stRef.current = 0;
-      // Only spawn 1 object at a time so it never exceeds 3
       const P = cfg.pool || ['asteroid', 'mine'];
       const type = P[Math.floor(Math.random()*P.length)];
       const r = Math.random() * MOVEMENT_BOUND;
       const th = Math.random() * Math.PI * 2;
       
       let speedMult = 2;
-      if (type === 'funny') speedMult = 6.5; // Chuck is extremely fast
-      if (type === 'boss') speedMult = 1.0; // Boss is slower but huge
+      if (type === 'chuck') speedMult = 6.5;
+      if (type === 'boss') speedMult = 1.0;
       
       spawn(type, [r * Math.cos(th), r * Math.sin(th), SPAWN_Z], speedMult + Math.random()*(cfg.speed || 1));
       adv();
@@ -395,17 +445,13 @@ const GameLogic = ({ shipPos }) => {
 
 // ─── MOUSE LISTENER ───────────────────────────────
 const MouseControls = ({ posRef }) => {
-  useFrame((state) => {
-    const x = state.pointer.x * TUNNEL_RADIUS;
-    const y = state.pointer.y * TUNNEL_RADIUS;
-    
-    const dist = Math.sqrt(x*x + y*y);
-    if (dist > MOVEMENT_BOUND) {
-      posRef.current.x = x * (MOVEMENT_BOUND/dist);
-      posRef.current.y = y * (MOVEMENT_BOUND/dist);
-    } else {
-      posRef.current.x = x;
-      posRef.current.y = y;
+  useFrame(({ mouse }) => {
+    const targetX = mouse.x * MOVEMENT_BOUND;
+    const targetY = mouse.y * MOVEMENT_BOUND;
+
+    if (posRef.current) {
+      posRef.current.x += (targetX - posRef.current.x) * 0.1;
+      posRef.current.y += (targetY - posRef.current.y) * 0.1;
     }
   });
   return null;
@@ -417,25 +463,18 @@ const GameCanvas = () => {
 
   return (
     <div className="game-canvas-wrapper" id="game-canvas">
-      <Canvas
-        camera={{ position: [0, 0, 15], fov: 75, near: 0.1, far: 500 }}
-        gl={{ antialias: false, toneMapping: THREE.ACESFilmicToneMapping }}
-        dpr={1}
-      >
-        <color attach="background" args={['#050404']} />
-        <fog attach="fog" args={['#050404', 30, 250]} />
+      <Canvas camera={{ position: [0, 0, 15], fov: 60, near: 0.1, far: 500 }}>
+        <color attach="background" args={['#000000']} />
         
-        <pointLight position={[0, 0, 10]} intensity={12} color="#ffffff" distance={200} decay={1.5} />
-        <pointLight position={[0, 0, -50]} intensity={15} color="#f59e0b" distance={150} decay={1.5} />
-        <ambientLight intensity={1.5} color="#ffffff" />
-
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.4} luminanceSmoothing={0.9} intensity={1.5} />
-        </EffectComposer>
+        {/* Balanced Lighting */}
+        <ambientLight intensity={0.6} color="#ffffff" />
+        <directionalLight position={[0, 10, 10]} intensity={1.5} color="#ffffff" />
+        <pointLight position={[0, 0, 10]} intensity={2.0} color="#ffffff" distance={100} decay={2} />
 
         <MouseControls posRef={shipPos} />
         <Tunnel />
         <Ship posRef={shipPos} />
+        <Crosshair3D posRef={shipPos} />
         <GameLogic shipPos={shipPos} />
       </Canvas>
       <HUD />

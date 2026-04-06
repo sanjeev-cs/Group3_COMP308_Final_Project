@@ -8,9 +8,9 @@ import GameCanvas from '../components/game/GameCanvas.jsx';
 import './GamePage.css';
 
 const CONFIGS = {
-  1: { duration: 60, waves: 8,  objectsPerWave: { min: 1, max: 2 }, speed: 0.8, pool: ['asteroid', 'mine'] },
-  2: { duration: 50, waves: 12, objectsPerWave: { min: 2, max: 3 }, speed: 1.0, pool: ['drone', 'alien'] },
-  3: { duration: 45, waves: 15, objectsPerWave: { min: 2, max: 4 }, speed: 1.3, pool: ['boss', 'funny'] },
+  1: { duration: 60, waves: 8,  objectsPerWave: { min: 1, max: 2 }, speed: 0.8, pool: ['meteor', 'mine'] },
+  2: { duration: 50, waves: 12, objectsPerWave: { min: 2, max: 3 }, speed: 1.0, pool: ['ghost_boy', 'king_boo'] },
+  3: { duration: 45, waves: 15, objectsPerWave: { min: 2, max: 4 }, speed: 1.3, pool: ['boss', 'chuck'] },
 };
 
 const UI_OVERRIDES = {

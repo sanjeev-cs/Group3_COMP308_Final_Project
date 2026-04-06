@@ -73,19 +73,19 @@ const useGameStore = create((set, get) => ({
     let timeAdd = 0;
 
     switch (type) {
-      case 'asteroid':
+      case 'meteor':
         scoreAdd = 10;
         comboAdd = 1;
         break;
-      case 'drone':
+      case 'ghost_boy':
         scoreAdd = 20;
         comboAdd = 1;
         break;
-      case 'alien':
+      case 'king_boo':
         scoreAdd = 30;
         comboAdd = 1;
         break;
-      case 'funny':
+      case 'chuck':
         scoreAdd = 50;
         comboAdd = 1;
         break;
@@ -137,7 +137,7 @@ const useGameStore = create((set, get) => ({
   // Object reached the station (missed)
   missObject: (id, type) => {
     const state = get();
-    if (['asteroid', 'drone', 'alien', 'boss', 'funny'].includes(type)) {
+    if (['meteor', 'ghost_boy', 'king_boo', 'boss', 'chuck'].includes(type)) {
       const newLives = state.lives - 1;
       set({
         lives: newLives,
