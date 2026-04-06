@@ -12,13 +12,15 @@
     "@apollo/client": "^3.11.0",
     "@react-three/drei": "^9.108.0",
     "@react-three/fiber": "^8.16.0",
+    "@react-three/postprocessing": "^2.19.1",
     "graphql": "^16.9.0",
     "graphql-ws": "^5.16.0",
     "jwt-decode": "^4.0.0",
+    "postprocessing": "^6.39.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-router-dom": "^6.26.0",
-    "three": "^0.166.0",
+    "three": "^0.170.0",
     "zustand": "^4.5.0"
   },
   "devDependencies": {

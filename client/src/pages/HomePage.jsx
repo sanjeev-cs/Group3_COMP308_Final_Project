@@ -7,103 +7,74 @@ const HomePage = () => {
 
   return (
     <div className="home-page" id="home-page">
-      {/* Hero Section */}
       <section className="hero">
-        <div className="hero-bg">
-          <div className="star star-1" />
-          <div className="star star-2" />
-          <div className="star star-3" />
-          <div className="star star-4" />
-          <div className="star star-5" />
-        </div>
-
-        <div className="hero-content container">
-          <h1 className="hero-title">
-            <span className="hero-icon">🚀</span>
-            <span className="title-line">Stellar</span>
-            <span className="title-line accent">Smash</span>
-          </h1>
+        <div className="hero-bg" />
+        <div className="hero-content">
+          <h1 className="hero-title">Fly fast. Hit hard. Don't die.</h1>
           <p className="hero-subtitle">
-            Defend your space station from asteroids, alien drones, and cosmic debris.
-            Click fast. Score big. Climb the leaderboard.
+            A 3D space game where you pilot a ship through waves of asteroids,
+            drones and mines. Steer with your mouse, hold to shoot, survive as
+            long as you can.
           </p>
-
           <div className="hero-actions">
             {user ? (
               <>
-                <Link to="/game" className="btn btn-primary btn-lg" id="play-now-btn">
-                  🎮 Play Now
-                </Link>
-                <Link to="/dashboard" className="btn btn-secondary btn-lg" id="dashboard-btn">
-                  📊 Dashboard
-                </Link>
+                <Link to="/game" className="btn btn-primary btn-lg" id="play-now-btn">Play now</Link>
+                <Link to="/dashboard" className="btn btn-secondary btn-lg" id="dashboard-btn">Dashboard</Link>
               </>
             ) : (
               <>
-                <Link to="/register" className="btn btn-primary btn-lg" id="get-started-btn">
-                  🚀 Get Started
-                </Link>
-                <Link to="/login" className="btn btn-secondary btn-lg" id="sign-in-btn">
-                  Sign In
-                </Link>
+                <Link to="/register" className="btn btn-primary btn-lg" id="get-started-btn">Create account</Link>
+                <Link to="/login" className="btn btn-secondary btn-lg" id="sign-in-btn">Log in</Link>
               </>
             )}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features container">
-        <h2 className="section-title">How It Works</h2>
-        <div className="features-grid">
-          <div className="feature-card card">
-            <div className="feature-icon">🎯</div>
-            <h3>Click & Destroy</h3>
-            <p>Asteroids and drones fly at your station. Click them before they hit!</p>
+      <hr className="section-divider" />
+
+      <section className="features-section container">
+        <h2>What you're getting into</h2>
+        <p className="features-lead">Three minutes per round. Infinite replay value.</p>
+        <div className="features-list">
+          <div className="feature-cell">
+            <div className="feature-num">01</div>
+            <h3>Hyper-Tunnel flight</h3>
+            <p>Navigate a massive tubular structure at high speed. Move the mouse to steer your ship along the inner wall. Hold click to shoot energy bolts.</p>
           </div>
-          <div className="feature-card card">
-            <div className="feature-icon">⚡</div>
-            <h3>Build Combos</h3>
-            <p>Chain consecutive hits for a score multiplier. Speed and accuracy matter!</p>
+          <div className="feature-cell">
+            <div className="feature-num">02</div>
+            <h3>Combo multiplier</h3>
+            <p>Every consecutive hit raises your multiplier. Miss once and it's gone. Risk versus reward, every second.</p>
           </div>
-          <div className="feature-card card">
-            <div className="feature-icon">🏆</div>
-            <h3>Climb the Ranks</h3>
-            <p>Earn XP, level up, unlock power-ups, and compete on the global leaderboard.</p>
-          </div>
-          <div className="feature-card card">
-            <div className="feature-icon">💎</div>
-            <h3>Earn Rewards</h3>
-            <p>Collect Stardust, unlock achievements, and complete daily challenges.</p>
+          <div className="feature-cell">
+            <div className="feature-num">03</div>
+            <h3>Progress and rank</h3>
+            <p>XP, levels, stardust currency, achievements and a live leaderboard. Your scores persist across sessions.</p>
           </div>
         </div>
       </section>
 
-      {/* Missions Preview */}
-      <section className="missions-preview container">
-        <h2 className="section-title">Missions</h2>
-        <div className="missions-grid">
-          <div className="mission-preview card">
-            <span className="badge badge-easy">Easy</span>
-            <h3>🪨 Asteroid Belt</h3>
-            <p>Navigate through a dense asteroid field. A perfect starting point.</p>
+      <hr className="section-divider" />
+
+      <section className="missions-section container">
+        <h2>Missions</h2>
+        {[
+          { diff: 'easy',   name: 'Asteroid Belt',  desc: 'Slow speed tunnel. Learn the controls.' },
+          { diff: 'medium', name: 'Drone Swarm',    desc: 'Faster enemies that actively weave through the tube towards you.' },
+          { diff: 'hard',   name: 'Meteor Storm',   desc: '45 seconds of maximum density. Good luck.' },
+        ].map(m => (
+          <div key={m.name} className="mission-row">
+            <span className={`mission-diff ${m.diff}`} />
+            <span className="mission-name">{m.name}</span>
+            <span className="mission-desc">{m.desc}</span>
           </div>
-          <div className="mission-preview card">
-            <span className="badge badge-medium">Medium</span>
-            <h3>👾 Drone Swarm</h3>
-            <p>Alien drones zigzag unpredictably. Can you keep up?</p>
-          </div>
-          <div className="mission-preview card">
-            <span className="badge badge-hard">Hard</span>
-            <h3>☄️ Meteor Storm</h3>
-            <p>A massive storm of meteors. Only the quickest survive.</p>
-          </div>
-        </div>
+        ))}
       </section>
 
-      {/* Footer */}
       <footer className="home-footer">
-        <p>Stellar Smash © 2025 — Built with React, Three.js & GraphQL</p>
+        Stellar Smash · COMP308 Group 3 · React + Three.js + GraphQL
       </footer>
     </div>
   );

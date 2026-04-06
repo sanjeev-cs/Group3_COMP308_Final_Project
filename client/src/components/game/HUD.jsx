@@ -1,85 +1,77 @@
+import { useEffect, useState, useRef } from 'react';
 import useGameStore from '../../store/gameStore.js';
 import './HUD.css';
 
-/**
- * Heads-up display — overlaid on the 3D canvas.
- * Shows score, combo, lives, timer, and a targeting reticle.
- */
 const HUD = () => {
-  const score = useGameStore((s) => s.score);
-  const combo = useGameStore((s) => s.combo);
-  const lives = useGameStore((s) => s.lives);
-  const timeRemaining = useGameStore((s) => s.timeRemaining);
-  const status = useGameStore((s) => s.status);
+  const score    = useGameStore(s => s.score);
+  const combo    = useGameStore(s => s.combo);
+  const lives    = useGameStore(s => s.lives);
+  const time     = useGameStore(s => s.timeRemaining);
+  const status   = useGameStore(s => s.status);
+  const destroyed= useGameStore(s => s.objectsDestroyed);
+
+  const [popups, setPopups] = useState([]);
+  const prev = useRef(0);
+
+  useEffect(() => {
+    const diff = score - prev.current;
+    if (diff !== 0 && status === 'playing') {
+      const id = Date.now() + Math.random();
+      const x = (Math.random() - 0.5) * 80;
+      setPopups(p => [...p, { id, value: diff > 0 ? `+${diff}` : `${diff}`, x, positive: diff > 0 }]);
+      setTimeout(() => setPopups(p => p.filter(v => v.id !== id)), 1000);
+    }
+    prev.current = score;
+  }, [score, status]);
 
   if (status !== 'playing') return null;
 
-  const comboMultiplier = 1 + Math.floor(combo / 5) * 0.5;
-  const isLowTime = timeRemaining <= 10;
+  const low = time <= 10;
+  const mult = 1 + Math.floor(combo / 5) * 0.5;
 
   return (
     <div className="hud" id="game-hud">
-      {/* Top bar */}
-      <div className="hud-top">
-        <div className="hud-score">
-          <span className="hud-label">Score</span>
-          <span className="hud-value">{score}</span>
-        </div>
-
-        <div className={`hud-timer ${isLowTime ? 'hud-timer-low' : ''}`}>
-          <span className="hud-label">Time</span>
-          <span className="hud-value">{Math.ceil(timeRemaining)}s</span>
-        </div>
-
-        <div className="hud-lives">
-          <span className="hud-label">Hull</span>
-          <span className="hud-value hud-hearts">
-            {'❤️'.repeat(lives)}{'🖤'.repeat(Math.max(0, 3 - lives))}
-          </span>
-        </div>
+      {/* Score */}
+      <div className="hud-score">
+        <div className="hud-score-num">{score}</div>
+        <div className="hud-score-label">{destroyed} destroyed</div>
       </div>
 
-      {/* Center reticle */}
-      <div className="hud-reticle">
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <circle cx="30" cy="30" r="25" stroke="rgba(77,159,255,0.2)" strokeWidth="1" />
-          <circle cx="30" cy="30" r="12" stroke="rgba(77,159,255,0.3)" strokeWidth="1" />
-          <line x1="30" y1="0" x2="30" y2="18" stroke="rgba(77,159,255,0.3)" strokeWidth="1" />
-          <line x1="30" y1="42" x2="30" y2="60" stroke="rgba(77,159,255,0.3)" strokeWidth="1" />
-          <line x1="0" y1="30" x2="18" y2="30" stroke="rgba(77,159,255,0.3)" strokeWidth="1" />
-          <line x1="42" y1="30" x2="60" y2="30" stroke="rgba(77,159,255,0.3)" strokeWidth="1" />
-        </svg>
+      {/* Timer */}
+      <div className="hud-timer">
+        <div className={`hud-timer-num ${low ? 'low' : ''}`}>{Math.ceil(time)}</div>
+        <div className="hud-timer-label">seconds</div>
       </div>
 
-      {/* Combo display */}
-      {combo > 0 && (
+      {/* Combo */}
+      {combo >= 3 && (
         <div className="hud-combo">
-          <span className="combo-count">{combo}×</span>
-          <span className="combo-multiplier">{comboMultiplier.toFixed(1)}x multiplier</span>
+          <span className="hud-combo-num">{combo}×</span>
+          <span className="hud-combo-label">{mult.toFixed(1)}x</span>
         </div>
       )}
 
-      {/* Bottom legend */}
-      <div className="hud-legend">
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: '#8B7355' }} />Asteroid +10
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: '#ef4444' }} />Drone +20
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: '#00e5ff' }} />Energy +15
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: '#ffd700' }} />Stardust +25
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: '#ff0033', boxShadow: '0 0 6px #ff0033' }} />Mine ⚠️
-        </span>
+      {/* Lives */}
+      <div className="hud-lives">
+        {[0, 1, 2].map(i => (
+          <div key={i} className={`hud-life ${i < lives ? 'on' : 'off'}`} />
+        ))}
       </div>
 
-      {/* Corner scanlines effect */}
-      <div className="hud-scanline" />
+      {/* Crosshair */}
+      <div className="hud-cross" />
+
+      {/* Score popups */}
+      <div className="hud-popups">
+        {popups.map(p => (
+          <div key={p.id} className={`hud-popup ${p.positive ? 'pos' : 'neg'}`} style={{ left: p.x }}>
+            {p.value}
+          </div>
+        ))}
+      </div>
+
+      {/* Hint */}
+      <div className="hud-hint">Move mouse to steer · Hold click to shoot</div>
     </div>
   );
 };

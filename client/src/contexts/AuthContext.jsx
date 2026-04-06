@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useApolloClient } from '@apollo/client';
 import { GET_ME } from '../graphql/queries.js';
+import useGameStore from '../store/gameStore.js';
 
 const AuthContext = createContext(null);
 
@@ -45,6 +46,8 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
+    // Reset game state so it doesn't persist across sessions
+    useGameStore.getState().reset();
     client.resetStore();
   }, [client]);
 

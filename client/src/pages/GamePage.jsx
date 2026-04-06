@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { GET_MISSIONS } from '../graphql/queries.js';
@@ -7,176 +7,130 @@ import useGameStore from '../store/gameStore.js';
 import GameCanvas from '../components/game/GameCanvas.jsx';
 import './GamePage.css';
 
-// Mission configs matching the server MISSIONS data for client-side use
-const MISSION_CONFIGS = {
-  1: { duration: 60, waves: 8, objectsPerWave: { min: 3, max: 4 }, speed: 1 },
-  2: { duration: 50, waves: 12, objectsPerWave: { min: 4, max: 6 }, speed: 1.5 },
-  3: { duration: 45, waves: 15, objectsPerWave: { min: 5, max: 8 }, speed: 2 },
+const CONFIGS = {
+  1: { duration: 60, waves: 8,  objectsPerWave: { min: 1, max: 2 }, speed: 0.8 },
+  2: { duration: 50, waves: 12, objectsPerWave: { min: 2, max: 3 }, speed: 1.0 },
+  3: { duration: 45, waves: 15, objectsPerWave: { min: 2, max: 4 }, speed: 1.3 },
 };
 
 const GamePage = () => {
   const { user, refreshUser } = useAuth();
-  const { data: missionsData } = useQuery(GET_MISSIONS);
-  const missions = missionsData?.getMissions || [];
+  const { data } = useQuery(GET_MISSIONS);
+  const missions = data?.getMissions || [];
 
-  const status = useGameStore((s) => s.status);
-  const score = useGameStore((s) => s.score);
-  const lives = useGameStore((s) => s.lives);
-  const maxCombo = useGameStore((s) => s.maxCombo);
-  const wavesCompleted = useGameStore((s) => s.wavesCompleted);
-  const objectsDestroyed = useGameStore((s) => s.objectsDestroyed);
-  const missionId = useGameStore((s) => s.missionId);
-  const startMission = useGameStore((s) => s.startMission);
-  const reset = useGameStore((s) => s.reset);
+  const status    = useGameStore(s => s.status);
+  const score     = useGameStore(s => s.score);
+  const lives     = useGameStore(s => s.lives);
+  const maxCombo  = useGameStore(s => s.maxCombo);
+  const waves     = useGameStore(s => s.wavesCompleted);
+  const destroyed = useGameStore(s => s.objectsDestroyed);
+  const mId       = useGameStore(s => s.missionId);
+  const start     = useGameStore(s => s.startMission);
+  const reset     = useGameStore(s => s.reset);
 
-  const [lastResult, setLastResult] = useState(null);
+  useEffect(() => () => reset(), [reset]);
 
+  const [result, setResult] = useState(null);
   const [saveResult] = useMutation(SAVE_GAME_RESULT, {
-    onCompleted: (data) => {
-      setLastResult(data.saveGameResult);
-      refreshUser();
-    },
+    onCompleted: d => { setResult(d.saveGameResult); refreshUser(); },
   });
 
-  const handleStartMission = useCallback((id) => {
-    const config = MISSION_CONFIGS[id];
-    if (!config) return;
-    setLastResult(null);
-    startMission(id, config);
-  }, [startMission]);
+  const launch = useCallback(id => {
+    const cfg = CONFIGS[id];
+    if (!cfg) return;
+    setResult(null);
+    start(id, cfg);
+  }, [start]);
 
-  const handleSaveAndReturn = useCallback(() => {
-    const completed = status === 'completed';
+  const save = useCallback(() => {
     saveResult({
       variables: {
         input: {
-          missionId,
-          score,
-          wavesCompleted,
-          objectsDestroyed,
-          livesRemaining: lives,
-          maxCombo,
-          completed,
+          missionId: mId, score, wavesCompleted: waves,
+          objectsDestroyed: destroyed, livesRemaining: lives,
+          maxCombo, completed: status === 'completed',
         },
       },
     });
-  }, [status, missionId, score, wavesCompleted, objectsDestroyed, lives, maxCombo, saveResult]);
+  }, [status, mId, score, waves, destroyed, lives, maxCombo, saveResult]);
 
-  const handleBackToSelect = useCallback(() => {
-    reset();
-    setLastResult(null);
-  }, [reset]);
-
-  // ─── Mission Select Screen ───────────────────────────
-  if (status === 'idle') {
-    return (
-      <div className="game-page page" id="game-page">
-        <div className="container">
-          <h1 className="page-title">Select Mission</h1>
-          <p className="page-subtitle">Choose your battlefield, Commander.</p>
-
-          <div className="mission-select-grid">
-            {missions.map((m) => {
-              const locked = user.level < m.requiredLevel;
-              return (
-                <div className={`card mission-select-card ${locked ? 'locked' : ''}`} key={m.id}>
-                  <span className={`badge badge-${m.difficulty.toLowerCase()}`}>{m.difficulty}</span>
-                  <h2>{m.name}</h2>
-                  <p>{m.description}</p>
-                  <div className="mission-meta">
-                    <span>⏱ {m.duration}s</span>
-                    <span>🌊 {m.waves} waves</span>
-                    <span>⚡ Speed {m.speed}x</span>
-                  </div>
-                  <div className="mission-rewards-preview">
-                    <span>+{m.baseXP} XP</span>
-                    <span>+{m.baseStardust} 💎</span>
-                  </div>
-                  {locked ? (
-                    <div className="mission-locked">
-                      🔒 Requires Level {m.requiredLevel}
-                    </div>
-                  ) : (
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleStartMission(m.id)}
-                      id={`start-mission-${m.id}`}
-                    >
-                      🚀 Launch
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
+  // Active game
+  if (status === 'playing') {
+    return <div className="game-page game-active" id="game-active"><GameCanvas /></div>;
   }
 
-  // ─── Game Over / Complete Screen ─────────────────────
+  // Result
   if (status === 'completed' || status === 'failed') {
-    const isWin = status === 'completed';
-
+    const win = status === 'completed';
+    const stars = result?.starsEarned ?? 0;
     return (
-      <div className="game-page page" id="game-result">
-        <div className="container result-container">
-          <div className="card result-card animate-fadeIn">
-            <div className="result-icon">{isWin ? '🏆' : '💥'}</div>
-            <h1>{isWin ? 'Mission Complete!' : 'Mission Failed!'}</h1>
-            <p className="result-subtitle">
-              {isWin ? 'Great job, Commander!' : 'Better luck next time!'}
-            </p>
+      <div className="game-page result-page" id="game-result">
+        <div className="result-box">
+          <div className={`result-status ${win ? 'win' : 'fail'}`}>
+            {win ? 'Mission complete' : 'Mission failed'}
+          </div>
+          <h1 className="result-title">{win ? 'Nice flying.' : 'Ship lost.'}</h1>
+          <p className="result-sub">{win ? 'Your run has been recorded.' : 'Better luck next time.'}</p>
 
-            <div className="stat-grid result-stats">
-              <div className="stat-item">
-                <div className="stat-value">{score}</div>
-                <div className="stat-label">Score</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-value">{maxCombo}×</div>
-                <div className="stat-label">Best Combo</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-value">{objectsDestroyed}</div>
-                <div className="stat-label">Destroyed</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-value">{'❤️'.repeat(lives)}</div>
-                <div className="stat-label">Lives Left</div>
-              </div>
+          {result && (
+            <div className="result-stars">
+              {[1,2,3].map(i => (
+                <span key={i} className={`result-star ${i <= stars ? 'on' : 'off'}`}>{i <= stars ? '★' : '☆'}</span>
+              ))}
             </div>
+          )}
 
-            {lastResult && (
-              <div className="result-saved">
-                <p>⭐ Stars: {lastResult.starsEarned}/3</p>
-                <p>Progress saved!</p>
-              </div>
-            )}
+          <div className="result-stats stat-grid">
+            <div className="stat-item"><div className="stat-value">{score}</div><div className="stat-label">Score</div></div>
+            <div className="stat-item"><div className="stat-value">{maxCombo}×</div><div className="stat-label">Best combo</div></div>
+            <div className="stat-item"><div className="stat-value">{destroyed}</div><div className="stat-label">Destroyed</div></div>
+            <div className="stat-item"><div className="stat-value">{lives}</div><div className="stat-label">Hull left</div></div>
+          </div>
 
-            <div className="result-actions">
-              {!lastResult && (
-                <button className="btn btn-gold" onClick={handleSaveAndReturn} id="save-result-btn">
-                  💾 Save Result
-                </button>
-              )}
-              <button className="btn btn-primary" onClick={() => handleStartMission(missionId)} id="retry-btn">
-                🔄 Retry
-              </button>
-              <button className="btn btn-secondary" onClick={handleBackToSelect} id="back-to-select-btn">
-                ← Missions
-              </button>
-            </div>
+          {result && <div className="result-saved">Result saved — {result.starsEarned}/3 stars</div>}
+
+          <div className="result-actions">
+            {!result && <button className="btn btn-gold" onClick={save} id="save-result-btn">Save result</button>}
+            <button className="btn btn-primary" onClick={() => launch(mId)} id="retry-btn">Retry</button>
+            <button className="btn btn-secondary" onClick={() => { reset(); setResult(null); }} id="back-to-select-btn">Back</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ─── Active Game Screen ──────────────────────────────
+  // Mission select
   return (
-    <div className="game-page game-active" id="game-active">
-      <GameCanvas />
+    <div className="game-page mission-page" id="game-page">
+      <h1>Missions</h1>
+      <p>Pick a sector. Each one is harder than the last.</p>
+
+      <div className="mission-list">
+        {missions.map(m => {
+          const locked = user.level < m.requiredLevel;
+          const dc = m.difficulty.toLowerCase();
+          return (
+            <div key={m.id} className={`mission-item ${locked ? 'locked' : ''}`}>
+              <div className="mission-item-head">
+                <span className={`badge badge-${dc}`}>{m.difficulty}</span>
+                <h2>{m.name}</h2>
+              </div>
+              <p>{m.description}</p>
+              <div className="mission-meta">
+                <span>{m.duration}s</span>
+                <span>{m.waves} waves</span>
+                <span>{m.speed}× speed</span>
+                <span>+{m.baseXP} XP</span>
+                <span>+{m.baseStardust} dust</span>
+              </div>
+              {locked
+                ? <span className="mission-locked-text">Requires level {m.requiredLevel}</span>
+                : <button className="btn btn-primary" onClick={() => launch(m.id)} id={`start-mission-${m.id}`}>Start</button>
+              }
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
