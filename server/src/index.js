@@ -59,7 +59,11 @@ await server.start();
 app.use(
   '/graphql',
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [
+      process.env.CLIENT_URL,
+      'http://localhost:5173',
+      'https://group3-comp308-final-project-1.onrender.com'
+    ].filter(Boolean),
     credentials: true,
   }),
   express.json(),
