@@ -10,6 +10,7 @@ let masterGain;
 let bgmAudio;
 let audioUnlocked = false;
 let gameplayMusicEnabled = false;
+let audioMuted = false;
 
 const getContext = () => {
   if (typeof window === 'undefined') {
@@ -61,7 +62,7 @@ const syncGameplayMusic = () => {
     return;
   }
 
-  if (!audioUnlocked || !gameplayMusicEnabled) {
+  if (!audioUnlocked || !gameplayMusicEnabled || audioMuted) {
     bgm.pause();
     bgm.currentTime = 0;
     return;
@@ -74,7 +75,7 @@ const syncGameplayMusic = () => {
 };
 
 const playBufferedSound = (src, { volume = 1, playbackRate = 1 } = {}) => {
-  if (typeof window === 'undefined' || !audioUnlocked) {
+  if (typeof window === 'undefined' || !audioUnlocked || audioMuted) {
     return;
   }
 
@@ -101,7 +102,7 @@ const envelopeGain = (context, destination, start, attack, decay, peak) => {
 
 const playTone = ({ type = 'sine', frequency = 440, endFrequency, attack = 0.01, decay = 0.12, gain = 0.08 }) => {
   const context = getContext();
-  if (!context || !masterGain) {
+  if (!context || !masterGain || audioMuted) {
     return;
   }
 
@@ -130,6 +131,13 @@ export const setGameplayMusicEnabled = (enabled) => {
   gameplayMusicEnabled = enabled;
   syncGameplayMusic();
 };
+
+export const setAudioMuted = (muted) => {
+  audioMuted = muted;
+  syncGameplayMusic();
+};
+
+export const getAudioMuted = () => audioMuted;
 
 export const playLaserSound = () => {
   playBufferedSound(SOUND_FILES.laser, { volume: 0.42, playbackRate: 1 });
