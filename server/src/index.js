@@ -75,6 +75,6 @@ app.get('/health', (_, res) => {
 
 // Start server
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-  console.log(`🔌 Subscriptions ready at ws://localhost:${PORT}/graphql`);
+  console.log(`🚀 Server ready at ${process.env.CLIENT_URL}`);
+  console.log(`🔌 Subscriptions ready at ${process.env.CLIENT_URL.replace('http', 'ws')}/graphql`);
 });
