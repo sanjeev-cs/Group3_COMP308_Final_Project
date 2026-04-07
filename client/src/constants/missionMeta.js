@@ -20,8 +20,8 @@ export const MISSION_META = {
     name: 'The Absurd Threat',
     difficulty: 'Hard',
     marker: '03',
-    previewDesc: 'Maximum speed, boss pressure, almost no recovery.',
-    selectDesc: 'Maximum speed. Survive Chuck, the Boss, and the minefield.',
+    previewDesc: 'Maximum speed, Red Angrybird pressure, almost no recovery.',
+    selectDesc: 'Maximum speed. Survive Chuck, the Red Angrybird, and the minefield.',
   },
 };
 

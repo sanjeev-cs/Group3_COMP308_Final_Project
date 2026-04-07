@@ -42,7 +42,13 @@ const ProfilePage = () => {
       <div className="profile-page page" id="profile-page">
         <div className="profile-header card animate-fadeIn">
           <div className="profile-avatar-section">
-            <span className="profile-avatar">{user?.avatar}</span>
+            <span className="profile-avatar">
+              {user?.avatar && user.avatar.endsWith('.svg') ? (
+                <img src={`/avatars/${user.avatar}`} alt="avatar" style={{ width: '60px', height: '60px' }} />
+              ) : (
+                user?.avatar
+              )}
+            </span>
             <div>
               <h2>{user?.username}</h2>
             </div>

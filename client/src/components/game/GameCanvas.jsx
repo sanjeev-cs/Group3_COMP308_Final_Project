@@ -87,7 +87,7 @@ const TYPES = {
   mine:      { color: '#f59e0b', scale: 0.8 },
   ghost_boy: { color: '#ef4444', scale: 1.0 }, 
   king_boo:  { color: '#34d399', scale: 0.005 },
-  boss:      { color: '#ef4444', scale: 1.08 },
+  red_angrybird: { color: '#ef4444', scale: 1.08 },
   chuck:     { color: '#fcd34d', scale: 3.25 },
 };
 
@@ -206,8 +206,8 @@ const AlienModel = ({ scale }) => {
   return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
 };
 
-const BossModel = ({ scale }) => { 
-  const { scene, animations } = useGLTF('/models/Boss.glb'); 
+const RedAngrybirdModel = ({ scale }) => { 
+  const { scene, animations } = useGLTF('/models/red_angrybird.glb'); 
   const group = useRef();
   const { actions } = useAnimations(animations, group);
   
@@ -247,7 +247,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
       case 'ghost_boy': return <GhostModel scale={cfg.scale} />;
       case 'mine':      return <MineModel scale={cfg.scale} />;
       case 'king_boo':  return <AlienModel scale={cfg.scale} />;
-      case 'boss':      return <BossModel scale={cfg.scale} />;
+      case 'red_angrybird': return <RedAngrybirdModel scale={cfg.scale} />;
       case 'chuck':     return <FunnyModel scale={cfg.scale} />;
       default:          return <AsteroidModel scale={cfg.scale} />;
     }
@@ -280,7 +280,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   return (
     <group ref={ref} position={[px,py,pz]}>
       {ModelNode}
-      <pointLight color={cfg.color} intensity={type==='boss'?2.5:0} distance={6} />
+      <pointLight color={cfg.color} intensity={type==='red_angrybird'?2.5:0} distance={6} />
     </group>
   );
 };
@@ -483,7 +483,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
         if (type === 'ghost_boy') speedMult = 2.4;
         if (type === 'king_boo') speedMult = 2.7;
         if (type === 'chuck') speedMult = 6.9;
-        if (type === 'boss') speedMult = 1.15;
+        if (type === 'red_angrybird') speedMult = 1.15;
 
         spawn(type, [r * Math.cos(th), r * Math.sin(th), SPAWN_Z], speedMult + Math.random() * (cfg.speed || 1));
       }

@@ -29,7 +29,13 @@ const LeaderboardTable = ({ entries, currentUserId }) => {
                   <span className="rank-number">{rankEmoji || `#${index + 1}`}</span>
                 </td>
                 <td className="player-cell">
-                  <span className="player-avatar">{entry.avatar}</span>
+                  <span className="player-avatar">
+                    {entry.avatar && entry.avatar.endsWith('.svg') ? (
+                      <img src={`/avatars/${entry.avatar}`} alt="avatar" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
+                    ) : (
+                      entry.avatar
+                    )}
+                  </span>
                   <span className="player-name">{entry.username}</span>
                 </td>
                 <td className="score-cell">{entry.score.toLocaleString()}</td>

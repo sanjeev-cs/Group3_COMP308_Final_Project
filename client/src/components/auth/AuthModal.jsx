@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext.jsx';
 import { isValidPassword, PASSWORD_RULE_TEXT } from '../../utils/passwordPolicy.js';
 import './AuthModal.css';
 
-const AVATAR_OPTIONS = ['🚀', '👨‍🚀', '👩‍🚀', '🛸', '🌟', '🪐', '🤖', '👾'];
+const AVATAR_OPTIONS = ['batman.svg', 'boy.svg', 'sloth.svg'];
 
 const EyeIcon = ({ open }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="password-toggle-icon">
@@ -40,7 +40,7 @@ const AuthModal = ({ mode = 'login', onModeChange, onClose }) => {
     username: '',
     password: '',
     confirmPassword: '',
-    avatar: '🚀',
+    avatar: 'batman.svg',
   });
   const [loginError, setLoginError] = useState('');
   const [registerError, setRegisterError] = useState('');
@@ -299,7 +299,7 @@ const AuthModal = ({ mode = 'login', onModeChange, onClose }) => {
                       className={`auth-modal-avatar ${registerValues.avatar === avatar ? 'selected' : ''}`}
                       onClick={() => setRegisterValues((current) => ({ ...current, avatar }))}
                     >
-                      {avatar}
+                      <img src={`/avatars/${avatar}`} alt="avatar" style={{ width: '100%', height: '100%' }} />
                     </button>
                   ))}
                 </div>

@@ -27,7 +27,13 @@ const Navbar = () => {
               <Link to="/profile" className="nav-link">Profile</Link>
               <div className="nav-user-info">
                 <span className="nav-level">Lv {user.level}</span>
-                <span className="nav-avatar">{user.avatar}</span>
+                <span className="nav-avatar">
+                  {user.avatar && user.avatar.endsWith('.svg') ? (
+                    <img src={`/avatars/${user.avatar}`} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                  ) : (
+                    user.avatar
+                  )}
+                </span>
                 <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary" id="logout-btn">
                   Log out
                 </button>

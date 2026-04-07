@@ -18,7 +18,7 @@ export const MISSION_BRIEFINGS = {
     title: 'Level 3 Briefing',
     destroy: [
       { label: 'Chuck', points: '+50' },
-      { label: 'Boss', points: '+100' },
+      { label: 'Red Angrybird', points: '+100' },
     ],
     avoid: 'Avoid mines: -15 score and -1 forcefield.',
   },
