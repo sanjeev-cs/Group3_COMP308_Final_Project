@@ -162,7 +162,6 @@ const Bullet = ({ id, x, y, z, direction, onDone, registerTarget }) => {
     <group ref={ref} position={[x, y, z]}>
       <FireballEffect />
       <BulletModel />
-      <pointLight color="#fb923c" intensity={11} distance={10} decay={1.8} />
     </group>
   );
 };
@@ -183,11 +182,7 @@ const GhostModel = ({ scale }) => {
     }
   }, [actions]);
 
-  return (
-    <group ref={group} rotation={[0, -Math.PI / 2, 0]}>
-      <Center><Clone object={scene} scale={scale} /></Center>
-    </group>
-  ); 
+  return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
 };
 const MineModel     = ({ scale }) => { const { scene } = useGLTF('/models/mine.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
 const AlienModel = ({ scale }) => { 
@@ -204,7 +199,11 @@ const AlienModel = ({ scale }) => {
     }
   }, [actions]);
 
-  return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
+  return (
+    <group ref={group} rotation={[0, Math.PI / 2, 0]}>
+      <Center><Clone object={scene} scale={scale} /></Center>
+    </group>
+  ); 
 };
 
 const RedModel = ({ scale }) => { 
@@ -268,9 +267,14 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
       ref.current.position.y *= (MOVEMENT_BOUND/dist);
     }
 
-    if (type === 'meteor' || type === 'mine') {
+    if (normalizedType === 'meteor' || normalizedType === 'mine') {
       ref.current.rotation.x += d * 2;
       ref.current.rotation.y += d;
+    }
+
+    if (normalizedType === 'boss') {
+      ref.current.lookAt(state.camera.position);
+      ref.current.rotateY(Math.PI);
     }
 
     if (ref.current.position.z > MISS_Z) {
@@ -282,7 +286,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   return (
     <group ref={ref} position={[px,py,pz]}>
       {ModelNode}
-      <pointLight color={cfg.color} intensity={normalizedType === 'boss' ? 2.5 : 0} distance={6} />
+      {normalizedType === 'boss' ? <pointLight color={cfg.color} intensity={1.25} distance={4} /> : null}
     </group>
   );
 };
@@ -342,6 +346,10 @@ const GameLogic = ({ shipPos, aimPos }) => {
   const tick   = useGameStore(s=>s.tick);
   const adv    = useGameStore(s=>s.advanceWave);
   const objs   = useGameStore(s=>s.gameObjects);
+  const objectIndex = useMemo(
+    () => new Map(objs.map((object) => [object.id, object])),
+    [objs],
+  );
 
   const [bullets, setBullets] = useState([]);
   const [booms, setBooms]     = useState([]);
@@ -424,7 +432,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
       if (!eMesh) continue;
       
       const ePos = eMesh.position;
-      const enemyData = objs.find(o => o.id == eId);
+      const enemyData = objectIndex.get(Number(eId));
       let hitBulletId = null;
 
       for (const bId in activeBullets.current) {
@@ -467,7 +475,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
     stRef.current += d;
     if (stRef.current > (cfg.spawnInterval || 1.0) && objs.length < (cfg.maxActiveEnemies || 3)) {
       stRef.current = 0;
-      const P = cfg.pool || ['asteroid', 'mine'];
+      const P = cfg.pool || ['meteor', 'mine'];
       const availableSlots = Math.max(1, (cfg.maxActiveEnemies || 3) - objs.length);
       const minSpawn = cfg.objectsPerWave?.min || 1;
       const maxSpawn = cfg.objectsPerWave?.max || minSpawn;
@@ -554,7 +562,11 @@ const GameCanvas = ({ onReady, className = '' }) => {
 
   return (
     <div className={`game-canvas-wrapper ${className}`.trim()} id="game-canvas">
-      <Canvas camera={{ position: [0, 0, 15], fov: 60, near: 0.1, far: 500 }}>
+      <Canvas
+        camera={{ position: [0, 0, 15], fov: 60, near: 0.1, far: 500 }}
+        dpr={[1, 1.25]}
+        gl={{ antialias: false, powerPreference: 'high-performance' }}
+      >
         <color attach="background" args={['#040916']} />
         <fog attach="fog" args={['#020611', 18, 220]} />
         
