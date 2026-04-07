@@ -4,15 +4,15 @@ import * as THREE from 'three';
 
 const VISUAL_RADIUS = 24;
 const VISUAL_LENGTH = 360;
-const RING_COUNT = 24;
-const STREAK_COUNT = 160;
+const RING_COUNT = 16;
+const STREAK_COUNT = 96;
 const RING_RESET_Z = -14;
 const STREAK_RESET_Z = -8;
 
 const createTunnelTexture = () => {
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 2048;
+  canvas.width = 512;
+  canvas.height = 1024;
 
   const context = canvas.getContext('2d');
   if (!context) {
@@ -29,8 +29,8 @@ const createTunnelTexture = () => {
   context.fillStyle = baseGradient;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (let i = 0; i < 60; i += 1) {
-    const laneX = (i / 60) * canvas.width;
+  for (let i = 0; i < 42; i += 1) {
+    const laneX = (i / 42) * canvas.width;
     const laneWidth = 4 + Math.random() * 12;
     const laneGlow = context.createLinearGradient(laneX, 0, laneX + laneWidth, 0);
     laneGlow.addColorStop(0, 'rgba(34, 211, 238, 0)');
@@ -40,7 +40,7 @@ const createTunnelTexture = () => {
     context.fillRect(laneX, 0, laneWidth, canvas.height);
   }
 
-  for (let i = 0; i < 260; i += 1) {
+  for (let i = 0; i < 160; i += 1) {
     const streakX = Math.random() * canvas.width;
     const streakY = Math.random() * canvas.height;
     const streakWidth = 1 + Math.random() * 3;
@@ -53,7 +53,7 @@ const createTunnelTexture = () => {
     context.fillRect(streakX, streakY, streakWidth, streakHeight);
   }
 
-  for (let i = 0; i < 1200; i += 1) {
+  for (let i = 0; i < 720; i += 1) {
     const sparkX = Math.random() * canvas.width;
     const sparkY = Math.random() * canvas.height;
     const sparkSize = Math.random() * 2.4;
@@ -109,7 +109,7 @@ const TunnelWall = () => {
 
   return (
     <mesh ref={shellRef} rotation={[Math.PI / 2, 0, 0]}>
-      <cylinderGeometry args={[VISUAL_RADIUS, VISUAL_RADIUS, VISUAL_LENGTH, 96, 1, true]} />
+      <cylinderGeometry args={[VISUAL_RADIUS, VISUAL_RADIUS, VISUAL_LENGTH, 64, 1, true]} />
       <meshBasicMaterial
         map={tunnelTexture}
         side={THREE.BackSide}
@@ -154,7 +154,7 @@ const TunnelRings = () => {
       position={[0, 0, ring.z]}
       rotation={[0, 0, ring.rotation]}
     >
-      <torusGeometry args={[ring.radius, ring.thickness, 14, 96]} />
+      <torusGeometry args={[ring.radius, ring.thickness, 10, 56]} />
       <meshBasicMaterial
         color={ring.color}
         transparent

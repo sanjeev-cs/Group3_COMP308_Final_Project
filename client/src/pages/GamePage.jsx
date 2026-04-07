@@ -119,10 +119,8 @@ const GamePage = () => {
   }, [startMission]);
 
   const handleCanvasReady = useCallback(() => {
-    window.requestAnimationFrame(() => {
-      setIsCanvasReady(true);
-      setIsLaunching(false);
-    });
+    setIsCanvasReady(true);
+    setIsLaunching(false);
   }, []);
 
   const saveMission = useCallback(() => {
