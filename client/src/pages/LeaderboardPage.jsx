@@ -1,0 +1,38 @@
+import { useQuery } from '@apollo/client';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { GET_LEADERBOARD } from '../graphql/queries.js';
+import LeaderboardTable from '../components/LeaderboardTable.jsx';
+import PageShell from '../components/layout/PageShell.jsx';
+import './LeaderboardPage.css';
+
+const LeaderboardPage = () => {
+  const { user } = useAuth();
+  const { data, loading } = useQuery(GET_LEADERBOARD, {
+    variables: { limit: 20 },
+  });
+
+  const entries = data?.getLeaderboard || [];
+
+  return (
+    <PageShell
+      title="Leaderboard"
+      subtitle="Top commanders ranked by overall score across the whole game."
+      backTo="/dashboard"
+      backLabel="Dashboard"
+    >
+      <div className="leaderboard-page page" id="leaderboard-page">
+        <div className="card leaderboard-card">
+          {loading ? (
+            <div className="spinner-container">
+              <div className="spinner" />
+            </div>
+          ) : (
+            <LeaderboardTable entries={entries} currentUserId={user?.id} />
+          )}
+        </div>
+      </div>
+    </PageShell>
+  );
+};
+
+export default LeaderboardPage;

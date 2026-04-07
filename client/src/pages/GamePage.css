@@ -1,0 +1,239 @@
+.game-page { min-height: calc(100vh - 52px); }
+
+/* Active game */
+.game-shell {
+  min-height: 100vh;
+}
+
+.game-shell .page-shell-main {
+  padding: 0;
+}
+
+.game-shell-content {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+.game-active {
+  position: relative;
+  padding: 0;
+  height: 100vh;
+}
+
+.game-active .game-canvas-wrapper {
+  height: 100%;
+}
+
+.game-active-canvas {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.game-active-ready .game-active-canvas {
+  opacity: 1;
+}
+
+.game-launch-curtain {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(23, 31, 43, 0.2), rgba(4, 8, 14, 0.78) 58%, rgba(4, 8, 14, 0.9) 100%);
+  z-index: 2;
+  animation: gameLaunchCurtainFade 0.28s ease;
+}
+
+.game-launch-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 1rem 1.35rem;
+  border: 1px solid #334257;
+  border-radius: 18px;
+  background: #121924;
+  box-shadow: 0 18px 44px rgba(2, 6, 18, 0.34);
+  color: #eff4fb;
+}
+
+.game-launch-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c8a56a;
+}
+
+.game-launch-label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Mission select */
+.mission-page {
+  padding-bottom: 2rem;
+}
+
+.mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mission-item {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mission-item-medium {
+  border-color: rgba(216, 173, 112, 0.24);
+  background: linear-gradient(180deg, #1d2029 0%, #121924 100%);
+}
+
+.mission-item-hard {
+  border-color: rgba(209, 150, 165, 0.24);
+  background: linear-gradient(180deg, #201d28 0%, #121924 100%);
+}
+
+.mission-item-medium .badge {
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.08);
+}
+
+.mission-item-hard .badge {
+  box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.08);
+}
+.mission-item.locked { opacity: 0.35; pointer-events: none; }
+
+.mission-item-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.mission-item-head h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.mission-item p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.mission-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.mission-item .btn { align-self: flex-start; margin-top: 0.25rem; }
+
+.mission-locked-text { font-size: 0.78rem; color: #57534e; }
+
+/* Result */
+.result-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  padding: 1rem 1.5rem;
+}
+
+.result-shell .page-shell-main {
+  padding: 0.75rem 0;
+}
+
+.result-box {
+  max-width: 560px;
+  width: 100%;
+  animation: fadeIn 0.4s ease;
+  padding: 1.2rem;
+}
+
+.result-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+}
+
+.result-back-btn {
+  flex-shrink: 0;
+}
+
+.result-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.result-status.win { color: #34d399; }
+.result-status.fail { color: #ef4444; }
+
+.result-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.result-sub {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  margin-bottom: 1.4rem;
+}
+
+.result-stats { margin-bottom: 1rem; }
+
+.result-saved {
+  background: #173326;
+  color: #9dd4aa;
+  font-size: 0.78rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.result-note {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  margin-bottom: 0.9rem;
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .result-page {
+    align-items: flex-start;
+  }
+
+  .result-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@keyframes gameLaunchCurtainFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

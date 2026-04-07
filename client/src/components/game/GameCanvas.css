@@ -1,0 +1,8 @@
+.game-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #08060a;
+  cursor: crosshair;
+}
