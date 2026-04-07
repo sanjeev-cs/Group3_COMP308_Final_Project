@@ -5,7 +5,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_GRAPHQL_HTTP_URL || 'https://group3-comp308-final-project.onrender.com',
+  uri: import.meta.env.VITE_GRAPHQL_HTTP_URL || 'https://group3-comp308-final-project-backend.onrender.com',
 });
 
 // Inject JWT into every request
