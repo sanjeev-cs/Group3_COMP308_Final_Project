@@ -1,34 +1,60 @@
 .auth-page {
+  min-height: calc(100vh - 64px);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 52px);
+  padding: 1.5rem 0;
+}
+.auth-container {
+  width: 100%;
+  max-width: 520px;
+}
+.auth-shell .page-shell-main {
+  min-height: calc(100vh - 64px);
+  padding: 0;
+}
+.auth-card {
+  width: 100%;
   padding: 2rem;
 }
-.auth-container { width: 100%; max-width: 400px; }
-.auth-card { padding: 2rem; background: #1c1917; border: 1px solid #292524; border-radius: 12px; }
 .auth-header { text-align: center; margin-bottom: 1.5rem; }
-.auth-icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
-.auth-header h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
-.auth-header p { color: #78716c; font-size: 0.9rem; }
+.auth-icon { font-size: 2.7rem; display: block; margin-bottom: 0.65rem; }
+.auth-header h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.auth-header p { color: var(--text-muted); font-size: 0.92rem; }
 .auth-form { display: flex; flex-direction: column; }
+.auth-helper {
+  margin-top: 0.45rem;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
 .auth-error {
-  background: #7f1d1d;
-  color: #fca5a5;
+  background: rgba(127, 29, 29, 0.45);
+  color: #fecdd3;
   padding: 0.55rem 0.9rem;
-  border-radius: 8px;
+  border-radius: 12px;
   text-align: center;
   margin-bottom: 0.8rem;
   font-size: 0.82rem;
 }
 .auth-submit { width: 100%; margin-top: 0.5rem; }
-.auth-switch { text-align: center; margin-top: 1.2rem; color: #78716c; font-size: 0.85rem; }
+.auth-switch { text-align: center; margin-top: 1.2rem; color: var(--text-muted); font-size: 0.85rem; }
 .avatar-picker { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .avatar-option {
   width: 40px; height: 40px; font-size: 1.4rem;
-  border: 1px solid #292524; border-radius: 8px; background: #0c0a09;
+  border: 1px solid var(--line-soft); border-radius: 12px; background: rgba(4, 10, 22, 0.8);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: border-color 0.15s;
 }
-.avatar-option:hover { border-color: #57534e; }
-.avatar-option.selected { border-color: #a8a29e; background: #292524; }
+.avatar-option:hover { border-color: var(--line-strong); }
+.avatar-option.selected { border-color: var(--accent-cyan); background: rgba(10, 25, 46, 0.9); box-shadow: 0 0 18px rgba(34, 211, 238, 0.18); }
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding: 1rem 0;
+  }
+
+  .auth-card {
+    padding: 1.5rem;
+  }
+}

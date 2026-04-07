@@ -12,8 +12,7 @@ const LeaderboardTable = ({ entries, currentUserId }) => {
           <tr>
             <th>Rank</th>
             <th>Player</th>
-            <th>Mission</th>
-            <th>Score</th>
+            <th>Overall Score</th>
           </tr>
         </thead>
         <tbody>
@@ -33,7 +32,6 @@ const LeaderboardTable = ({ entries, currentUserId }) => {
                   <span className="player-avatar">{entry.avatar}</span>
                   <span className="player-name">{entry.username}</span>
                 </td>
-                <td className="mission-cell">Mission {entry.missionId}</td>
                 <td className="score-cell">{entry.score.toLocaleString()}</td>
               </tr>
             );

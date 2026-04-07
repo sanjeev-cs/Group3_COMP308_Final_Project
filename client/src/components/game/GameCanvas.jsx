@@ -4,93 +4,52 @@ import { useGLTF, Clone, useAnimations, Center } from '@react-three/drei';
 import * as THREE from 'three';
 import useGameStore from '../../store/gameStore.js';
 import HUD from './HUD.jsx';
+import FireballEffect from './FireballEffect.jsx';
+import SpaceTunnel from './SpaceTunnel.jsx';
+import { clampToBounds, getVisibleMovementBounds, hasProjectileHit } from './gameSceneMath.js';
+import { playEnemyDestroyedSound, playLaserSound, resumeGameAudio } from './gameSoundManager.js';
 import './GameCanvas.css';
 
 // ─── TUNNEL SETTINGS ────────────────────────────────
 const TUNNEL_RADIUS = 12;
-const TUNNEL_LENGTH = 300;
 const SHIP_Z = 5;
+const CROSSHAIR_Z = -40;
 const SPAWN_Z = -200;
 const MISS_Z = 15;
 const SMOOTH = 0.12;
 const MOVEMENT_BOUND = TUNNEL_RADIUS - 1.5;
 
 // ─── THE SPACE TUNNEL ENVIRONMENT ───────────────────────
-const Tunnel = () => {
-  const tex = useMemo(() => {
-    const c = document.createElement('canvas'); 
-    c.width = 1024; c.height = 1024;
-    const x = c.getContext('2d');
-    
-    // Deep Space void (pitch black with subtle deep nebula gradient)
-    x.fillStyle = '#000005'; 
-    x.fillRect(0, 0, 1024, 1024);
-
-    let gradient = x.createLinearGradient(0, 0, 0, 1024);
-    gradient.addColorStop(0, "rgba(30, 20, 60, 0.4)"); 
-    gradient.addColorStop(0.5, "rgba(10, 20, 40, 0.4)"); 
-    gradient.addColorStop(1, "rgba(30, 20, 60, 0.4)");
-    x.fillStyle = gradient;
-    x.fillRect(0, 0, 1024, 1024);
-    
-    // Generate massive starfield streaming at warp speed
-    for (let i = 0; i < 1500; i++) {
-      const sx = Math.random() * 1024;
-      const sy = Math.random() * 1024;
-      // Stars stretch wildly along the Y-axis mimicking hyperspace jump strings
-      const length = 20 + Math.random() * 150;
-      const thickness = 1 + Math.random() * 3;
-      
-      const rColor = Math.random();
-      if (rColor > 0.9) x.fillStyle = '#60a5fa'; // neon blue stars
-      else if (rColor > 0.8) x.fillStyle = '#c084fc'; // purple stars
-      else x.fillStyle = '#ffffff'; // white core stars
-      
-      x.globalAlpha = 0.3 + Math.random() * 0.7;
-      x.fillRect(sx, sy, thickness, length);
-    }
-    
-    x.globalAlpha = 1.0;
-    const t = new THREE.CanvasTexture(c);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(2, 4); // Stretch it huge
-    return t;
-  }, []);
-
-  const ref = useRef();
-  useFrame((_, d) => {
-    if (ref.current) ref.current.material.map.offset.y -= d * 3.0;
-  });
-
-  return (
-    <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]}>
-      {/* Massive visual radius so it doesn't feel like a tight pipe, but an open expanse! */}
-      <cylinderGeometry args={[40, 40, 200, 32, 1, true]} />
-      <meshBasicMaterial map={tex} side={THREE.BackSide} />
-    </mesh>
-  );
-};
-
 // ─── PLAYER SHIP ──────────────────────────────────
-const Ship = ({ posRef }) => {
+const Ship = ({ targetRef, positionRef }) => {
   const group = useRef();
   // We use useGLTF without caching locally for simplicity. It handles its own caching.
   const { scene } = useGLTF('/models/spaceship.glb');
   const clone = useMemo(() => scene.clone(true), [scene]);
   const vel = useRef({ x: 0, y: 0 });
 
-  useFrame(() => {
+  useFrame((state) => {
     if (!group.current) return;
     const g = group.current;
+    const bounds = getVisibleMovementBounds(state.viewport, state.camera, SHIP_Z, MOVEMENT_BOUND);
+
+    clampToBounds(targetRef.current, bounds);
     
-    vel.current.x += (posRef.current.x - g.position.x) * SMOOTH;
-    vel.current.y += (posRef.current.y - g.position.y) * SMOOTH;
+    vel.current.x += (targetRef.current.x - g.position.x) * SMOOTH;
+    vel.current.y += (targetRef.current.y - g.position.y) * SMOOTH;
     vel.current.x *= 0.82;
     vel.current.y *= 0.82;
     
     g.position.x += vel.current.x;
     g.position.y += vel.current.y;
     g.position.z = SHIP_Z;
+
+    const unclampedX = g.position.x;
+    const unclampedY = g.position.y;
+    clampToBounds(g.position, bounds);
+    if (g.position.x !== unclampedX) vel.current.x = 0;
+    if (g.position.y !== unclampedY) vel.current.y = 0;
+    positionRef.current.copy(g.position);
 
     g.rotation.z = THREE.MathUtils.lerp(g.rotation.z, -vel.current.x * 0.4, 0.1);
     g.rotation.x = THREE.MathUtils.lerp(g.rotation.x, vel.current.y * 0.2, 0.1);
@@ -108,7 +67,7 @@ const Crosshair3D = ({ posRef }) => {
   const ref = useRef();
   useFrame(() => {
     if (ref.current) {
-      ref.current.position.set(posRef.current.x, posRef.current.y, -40);
+      ref.current.position.copy(posRef.current);
     }
   });
 
@@ -122,13 +81,43 @@ const Crosshair3D = ({ posRef }) => {
 
 // ─── BULLETS & COMBAT ─────────────────────────────
 const BULLET_SPEED = 150;
+const DEFAULT_WEAPON = { cooldown: 0.3, projectiles: 1, spread: 0, depthStep: 0 };
 const TYPES = {
   meteor:    { color: '#78716c', scale: 1.8 },
   mine:      { color: '#f59e0b', scale: 0.8 },
   ghost_boy: { color: '#ef4444', scale: 1.0 }, 
   king_boo:  { color: '#34d399', scale: 0.005 },
-  boss:      { color: '#ef4444', scale: 0.3 },
-  chuck:     { color: '#fcd34d', scale: 1.5 },
+  boss:      { color: '#ef4444', scale: 1.08 },
+  chuck:     { color: '#fcd34d', scale: 3.25 },
+};
+
+const getBurstOffsets = (count) => Array.from({ length: count }, (_, index) => index - (count - 1) / 2);
+
+const createProjectilePattern = (baseDirection, projectileCount, spread, depthStep) => {
+  const offsets = getBurstOffsets(projectileCount);
+
+  if (projectileCount <= 1) {
+    return [{ direction: baseDirection.clone(), depthOffset: 0 }];
+  }
+
+  if (spread <= 0) {
+    return Array.from({ length: projectileCount }, (_, index) => ({
+      direction: baseDirection.clone(),
+      depthOffset: index * depthStep,
+    }));
+  }
+
+  const worldUp = new THREE.Vector3(0, 1, 0);
+  const lateralAxis = new THREE.Vector3().crossVectors(baseDirection, worldUp);
+  if (lateralAxis.lengthSq() < 0.0001) {
+    lateralAxis.set(1, 0, 0);
+  }
+  lateralAxis.normalize();
+
+  return offsets.map((offset) => ({
+    direction: baseDirection.clone().addScaledVector(lateralAxis, offset * spread).normalize(),
+    depthOffset: Math.abs(offset) * depthStep,
+  }));
 };
 
 const BulletModel = () => {
@@ -137,7 +126,13 @@ const BulletModel = () => {
     const c = gltf.scene.clone(true);
     c.traverse(child => {
       if (child.isMesh) {
-        child.material = new THREE.MeshBasicMaterial({ color: '#f59e0b' });
+        child.material = new THREE.MeshStandardMaterial({
+          color: '#ffd166',
+          emissive: '#ff6a00',
+          emissiveIntensity: 2.4,
+          roughness: 0.18,
+          metalness: 0.05,
+        });
       }
     });
     return c;
@@ -145,8 +140,12 @@ const BulletModel = () => {
   return <primitive object={clone} scale={0.2} rotation={[Math.PI / 2, 0, 0]} />;
 };
 
-const Bullet = ({ id, x, y, z, onDone, registerTarget }) => {
+const Bullet = ({ id, x, y, z, direction, onDone, registerTarget }) => {
   const ref = useRef();
+  const travelDirection = useMemo(
+    () => new THREE.Vector3(direction[0], direction[1], direction[2]).normalize(),
+    [direction],
+  );
   
   useEffect(() => {
     registerTarget(id, ref.current);
@@ -155,20 +154,21 @@ const Bullet = ({ id, x, y, z, onDone, registerTarget }) => {
 
   useFrame((_, d) => {
     if (!ref.current) return;
-    ref.current.position.z -= BULLET_SPEED * d;
+    ref.current.position.addScaledVector(travelDirection, BULLET_SPEED * d);
     if (ref.current.position.z < SPAWN_Z) onDone(id);
   });
   return (
     <group ref={ref} position={[x, y, z]}>
+      <FireballEffect />
       <BulletModel />
-      <pointLight color="#f59e0b" intensity={6} distance={6} />
+      <pointLight color="#fb923c" intensity={11} distance={10} decay={1.8} />
     </group>
   );
 };
 
 // ─── DYNAMIC MODEL LOADERS ───────────────────────
 const AsteroidModel = ({ scale }) => { const { scene } = useGLTF('/models/meteor.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
-const DroneModel = ({ scale }) => { 
+const GhostModel = ({ scale }) => { 
   const { scene, animations } = useGLTF('/models/aliens/ghost_boy.glb'); 
   const group = useRef();
   const { actions } = useAnimations(animations, group);
@@ -182,7 +182,11 @@ const DroneModel = ({ scale }) => {
     }
   }, [actions]);
 
-  return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
+  return (
+    <group ref={group} rotation={[0, -Math.PI / 2, 0]}>
+      <Center><Clone object={scene} scale={scale} /></Center>
+    </group>
+  ); 
 };
 const MineModel     = ({ scale }) => { const { scene } = useGLTF('/models/mine.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
 const AlienModel = ({ scale }) => { 
@@ -231,9 +235,16 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
     return () => registerTarget(id, null);
   }, [id, registerTarget]);
 
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.userData.type = type;
+      ref.current.userData.speed = speed;
+    }
+  }, [speed, type]);
+
   const ModelNode = useMemo(() => {
     switch (type) {
-      case 'ghost_boy': return <DroneModel scale={cfg.scale} />;
+      case 'ghost_boy': return <GhostModel scale={cfg.scale} />;
       case 'mine':      return <MineModel scale={cfg.scale} />;
       case 'king_boo':  return <AlienModel scale={cfg.scale} />;
       case 'boss':      return <BossModel scale={cfg.scale} />;
@@ -320,7 +331,7 @@ const Boom = ({ x, y, z, color }) => {
 
 // ─── GAME LOGIC MGR ───────────────────────────────
 
-const GameLogic = ({ shipPos }) => {
+const GameLogic = ({ shipPos, aimPos }) => {
   const status = useGameStore(s=>s.status);
   const cfg    = useGameStore(s=>s.missionConfig);
   const spawn  = useGameStore(s=>s.spawnObject);
@@ -350,7 +361,10 @@ const GameLogic = ({ shipPos }) => {
   }, []);
 
   useEffect(() => {
-    const md = () => { firing.current = true; };
+    const md = () => {
+      resumeGameAudio();
+      firing.current = true;
+    };
     const mu = () => { firing.current = false; };
     window.addEventListener('mousedown', md);
     window.addEventListener('mouseup', mu);
@@ -372,10 +386,35 @@ const GameLogic = ({ shipPos }) => {
     if (status !== 'playing' || !cfg) return;
     tick(d);
 
+    const weapon = cfg.weapon || DEFAULT_WEAPON;
+
     cdRef.current -= d;
     if (firing.current && cdRef.current <= 0) {
-      cdRef.current = 0.15;
-      setBullets(p => [...p, { id: Date.now()+Math.random(), x: shipPos.current.x, y: shipPos.current.y, z: SHIP_Z }]);
+      cdRef.current = weapon.cooldown;
+      const origin = shipPos.current.clone();
+      const direction = aimPos.current.clone().sub(origin).normalize();
+      const projectilePattern = createProjectilePattern(
+        direction,
+        weapon.projectiles,
+        weapon.spread,
+        weapon.depthStep || 0,
+      );
+      playLaserSound();
+
+      setBullets((current) => [
+        ...current,
+        ...projectilePattern.map((projectile, index) => {
+          const spawnPosition = origin.clone().addScaledVector(direction, -projectile.depthOffset);
+
+          return {
+            id: Date.now() + Math.random() + index,
+            x: spawnPosition.x,
+            y: spawnPosition.y,
+            z: spawnPosition.z,
+            direction: [projectile.direction.x, projectile.direction.y, projectile.direction.z],
+          };
+        }),
+      ]);
     }
 
     for (const eId in activeEnemies.current) {
@@ -383,26 +422,35 @@ const GameLogic = ({ shipPos }) => {
       if (!eMesh) continue;
       
       const ePos = eMesh.position;
+      const enemyData = objs.find(o => o.id == eId);
       let hitBulletId = null;
 
       for (const bId in activeBullets.current) {
         const bMesh = activeBullets.current[bId];
         if (!bMesh) continue;
-        const distSq = ePos.distanceToSquared(bMesh.position);
-        if (distSq < 4) {
+        if (hasProjectileHit({
+          bulletPosition: bMesh.position,
+          enemyPosition: ePos,
+          bulletSpeed: BULLET_SPEED,
+          enemySpeed: enemyData?.speed ?? eMesh.userData.speed ?? 0,
+          delta: d,
+          enemyType: enemyData?.type ?? eMesh.userData.type,
+        })) {
           hitBulletId = bId;
           break;
         }
       }
 
       if (hitBulletId) {
-        const typeObj = objs.find(o => o.id == eId);
-        if (typeObj) {
-            triggerBoom(ePos.x, ePos.y, ePos.z, TYPES[typeObj.type]?.color || '#ffffff');
-            hit(Number(eId), typeObj.type);
+        if (enemyData) {
+            const hitResult = hit(Number(eId), enemyData.type);
+            if (hitResult?.destroyed) {
+              triggerBoom(ePos.x, ePos.y, ePos.z, TYPES[enemyData.type]?.color || '#ffffff');
+              playEnemyDestroyedSound();
+              delete activeEnemies.current[eId];
+            }
         }
         rmBul(Number(hitBulletId));
-        delete activeEnemies.current[eId];
         continue;
       }
 
@@ -415,18 +463,30 @@ const GameLogic = ({ shipPos }) => {
     }
 
     stRef.current += d;
-    if (stRef.current > 1.0 && objs.length < 3) {
+    if (stRef.current > (cfg.spawnInterval || 1.0) && objs.length < (cfg.maxActiveEnemies || 3)) {
       stRef.current = 0;
       const P = cfg.pool || ['asteroid', 'mine'];
-      const type = P[Math.floor(Math.random()*P.length)];
-      const r = Math.random() * MOVEMENT_BOUND;
-      const th = Math.random() * Math.PI * 2;
-      
-      let speedMult = 2;
-      if (type === 'chuck') speedMult = 6.5;
-      if (type === 'boss') speedMult = 1.0;
-      
-      spawn(type, [r * Math.cos(th), r * Math.sin(th), SPAWN_Z], speedMult + Math.random()*(cfg.speed || 1));
+      const availableSlots = Math.max(1, (cfg.maxActiveEnemies || 3) - objs.length);
+      const minSpawn = cfg.objectsPerWave?.min || 1;
+      const maxSpawn = cfg.objectsPerWave?.max || minSpawn;
+      const spawnCount = Math.min(
+        availableSlots,
+        minSpawn + Math.floor(Math.random() * (maxSpawn - minSpawn + 1)),
+      );
+
+      for (let index = 0; index < spawnCount; index += 1) {
+        const type = P[Math.floor(Math.random() * P.length)];
+        const r = Math.random() * MOVEMENT_BOUND;
+        const th = Math.random() * Math.PI * 2;
+
+        let speedMult = 2;
+        if (type === 'ghost_boy') speedMult = 2.4;
+        if (type === 'king_boo') speedMult = 2.7;
+        if (type === 'chuck') speedMult = 6.9;
+        if (type === 'boss') speedMult = 1.15;
+
+        spawn(type, [r * Math.cos(th), r * Math.sin(th), SPAWN_Z], speedMult + Math.random() * (cfg.speed || 1));
+      }
       adv();
     }
   });
@@ -437,45 +497,76 @@ const GameLogic = ({ shipPos }) => {
         <Enemy key={o.id} id={o.id} type={o.type} px={o.position[0]} py={o.position[1]} pz={o.position[2]} speed={o.speed} 
                onMiss={miss} registerTarget={regEnemy} />
       ))}
-      {bullets.map(b => <Bullet key={b.id} id={b.id} x={b.x} y={b.y} z={b.z} onDone={rmBul} registerTarget={regBullet} />)}
+      {bullets.map(b => (
+        <Bullet
+          key={b.id}
+          id={b.id}
+          x={b.x}
+          y={b.y}
+          z={b.z}
+          direction={b.direction}
+          onDone={rmBul}
+          registerTarget={regBullet}
+        />
+      ))}
       {booms.map(b => <Boom key={b.id} x={b.x} y={b.y} z={b.z} color={b.color} />)}
     </>
   );
 };
 
 // ─── MOUSE LISTENER ───────────────────────────────
-const MouseControls = ({ posRef }) => {
-  useFrame(({ mouse }) => {
-    const targetX = mouse.x * MOVEMENT_BOUND;
-    const targetY = mouse.y * MOVEMENT_BOUND;
+const MouseControls = ({ shipTargetRef, aimRef }) => {
+  useFrame(({ mouse, camera, viewport }) => {
+    const shipBounds = getVisibleMovementBounds(viewport, camera, SHIP_Z, MOVEMENT_BOUND);
+    const aimBounds = getVisibleMovementBounds(viewport, camera, CROSSHAIR_Z, TUNNEL_RADIUS - 0.8, { x: 0.6, y: 0.6 });
 
-    if (posRef.current) {
-      posRef.current.x += (targetX - posRef.current.x) * 0.1;
-      posRef.current.y += (targetY - posRef.current.y) * 0.1;
+    if (shipTargetRef.current) {
+      shipTargetRef.current.set(mouse.x * shipBounds.x, mouse.y * shipBounds.y, SHIP_Z);
+      clampToBounds(shipTargetRef.current, shipBounds);
+    }
+
+    if (aimRef.current) {
+      aimRef.current.set(mouse.x * aimBounds.x, mouse.y * aimBounds.y, CROSSHAIR_Z);
     }
   });
   return null;
 };
 
 // ══════════════════════════════════════════════════
-const GameCanvas = () => {
+const SceneReady = ({ onReady }) => {
+  const notified = useRef(false);
+
+  useFrame(() => {
+    if (!onReady || notified.current) return;
+    notified.current = true;
+    onReady();
+  });
+
+  return null;
+};
+
+const GameCanvas = ({ onReady, className = '' }) => {
+  const shipTarget = useRef(new THREE.Vector3(0, 0, SHIP_Z));
   const shipPos = useRef(new THREE.Vector3(0, 0, SHIP_Z));
+  const aimPos = useRef(new THREE.Vector3(0, 0, CROSSHAIR_Z));
 
   return (
-    <div className="game-canvas-wrapper" id="game-canvas">
+    <div className={`game-canvas-wrapper ${className}`.trim()} id="game-canvas">
       <Canvas camera={{ position: [0, 0, 15], fov: 60, near: 0.1, far: 500 }}>
-        <color attach="background" args={['#000000']} />
+        <color attach="background" args={['#040916']} />
+        <fog attach="fog" args={['#020611', 18, 220]} />
         
         {/* Balanced Lighting */}
         <ambientLight intensity={0.6} color="#ffffff" />
         <directionalLight position={[0, 10, 10]} intensity={1.5} color="#ffffff" />
         <pointLight position={[0, 0, 10]} intensity={2.0} color="#ffffff" distance={100} decay={2} />
 
-        <MouseControls posRef={shipPos} />
-        <Tunnel />
-        <Ship posRef={shipPos} />
-        <Crosshair3D posRef={shipPos} />
-        <GameLogic shipPos={shipPos} />
+        <SceneReady onReady={onReady} />
+        <MouseControls shipTargetRef={shipTarget} aimRef={aimPos} />
+        <SpaceTunnel />
+        <Ship targetRef={shipTarget} positionRef={shipPos} />
+        <Crosshair3D posRef={aimPos} />
+        <GameLogic shipPos={shipPos} aimPos={aimPos} />
       </Canvas>
       <HUD />
     </div>

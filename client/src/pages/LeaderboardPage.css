@@ -1,15 +1,1 @@
-.leaderboard-filters {
-  display: flex; gap: 0.4rem; justify-content: center;
-  margin-bottom: 1.5rem; flex-wrap: wrap;
-}
-.filter-btn {
-  font-family: inherit;
-  font-size: 0.78rem; font-weight: 500;
-  padding: 0.45rem 0.9rem;
-  border: 1px solid #292524; border-radius: 8px;
-  background: transparent; color: #78716c;
-  cursor: pointer; transition: all 0.15s;
-}
-.filter-btn:hover { border-color: #3f3f46; color: #e4e4e7; }
-.filter-btn.active { background: #292524; border-color: #3f3f46; color: #e4e4e7; }
-.leaderboard-card { padding: 1.25rem; background: #1c1917; border: 1px solid #292524; border-radius: 12px; }
+.leaderboard-card { padding: 1.25rem; }

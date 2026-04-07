@@ -26,7 +26,6 @@ const Navbar = () => {
               <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
               <Link to="/profile" className="nav-link">Profile</Link>
               <div className="nav-user-info">
-                <span className="nav-stardust">{user.stardust} dust</span>
                 <span className="nav-level">Lv {user.level}</span>
                 <span className="nav-avatar">{user.avatar}</span>
                 <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary" id="logout-btn">
@@ -34,12 +33,7 @@ const Navbar = () => {
                 </button>
               </div>
             </>
-          ) : (
-            <>
-              <Link to="/login" className="btn btn-sm btn-secondary" id="login-nav-btn">Log in</Link>
-              <Link to="/register" className="btn btn-sm btn-primary" id="register-nav-btn">Sign up</Link>
-            </>
-          )}
+          ) : null}
         </div>
       </div>
     </nav>

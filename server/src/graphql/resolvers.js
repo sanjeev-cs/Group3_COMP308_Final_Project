@@ -4,7 +4,10 @@ import GameProgress from '../models/GameProgress.js';
 import Achievement from '../models/Achievement.js';
 import LeaderboardEntry from '../models/LeaderboardEntry.js';
 import Challenge from '../models/Challenge.js';
+import { ACHIEVEMENT_PRESETS, DEFAULT_ACHIEVEMENTS } from '../config/achievementPresets.js';
+import { ACTIVE_CHALLENGE_PRESET_MAP, ACTIVE_CHALLENGE_PRESETS } from '../config/challengePresets.js';
 import { generateToken } from '../utils/jwt.js';
+import { assertValidPassword, buildInternalEmail, buildUsernameLookup } from '../utils/authCredentials.js';
 import { requireAuth } from '../middleware/auth.js';
 import {
   MISSIONS,
@@ -48,45 +51,78 @@ const resolvers = {
       return GameProgress.findOne({ userId: user.id, missionId });
     },
 
-    getLeaderboard: async (_, { missionId, limit = 20 }) => {
-      const query = missionId ? { missionId } : {};
-      const entries = await LeaderboardEntry.find(query)
-        .sort({ score: -1 })
+    getLeaderboard: async (_, { limit = 20 }) => {
+      const users = await User.find({})
+        .sort({ 'stats.totalScore': -1, level: -1, createdAt: 1 })
         .limit(limit)
+        .select('username avatar stats.totalScore createdAt')
         .lean();
 
-      // Populate user info
-      const userIds = [...new Set(entries.map((e) => e.userId.toString()))];
-      const users = await User.find({ _id: { $in: userIds } }).select('username avatar').lean();
-      const userMap = {};
-      users.forEach((u) => { userMap[u._id.toString()] = u; });
-
-      return entries.map((entry) => {
-        const user = userMap[entry.userId.toString()] || {};
-        return {
-          id: entry._id.toString(),
-          userId: entry.userId.toString(),
-          username: user.username || 'Unknown',
-          avatar: user.avatar || '🚀',
-          missionId: entry.missionId,
-          score: entry.score,
-          completedAt: entry.completedAt?.toISOString() || entry.createdAt?.toISOString(),
-        };
-      });
+      return users.map((user) => ({
+        id: user._id.toString(),
+        userId: user._id.toString(),
+        username: user.username || 'Unknown',
+        avatar: user.avatar || '🚀',
+        missionId: 0,
+        score: user.stats?.totalScore || 0,
+        completedAt: user.createdAt?.toISOString() || new Date().toISOString(),
+      }));
     },
 
     getAchievements: async () => {
-      return Achievement.find({});
+      const achievements = await Achievement.find({}).lean();
+      if (!achievements.length) {
+        return DEFAULT_ACHIEVEMENTS;
+      }
+
+      return achievements.map((achievement) => ({
+        ...achievement,
+        ...(ACHIEVEMENT_PRESETS[achievement.key] || {}),
+      }));
     },
 
     getMyAchievements: async (_, __, context) => {
       const user = requireAuth(context);
       if (!user.achievements.length) return [];
-      return Achievement.find({ key: { $in: user.achievements } });
+      const achievements = await Achievement.find({ key: { $in: user.achievements } }).lean();
+      if (!achievements.length) {
+        return user.achievements
+          .filter((key) => ACHIEVEMENT_PRESETS[key])
+          .map((key, index) => ({
+            id: `preset-user-${index + 1}`,
+            key,
+            ...ACHIEVEMENT_PRESETS[key],
+          }));
+      }
+
+      return achievements.map((achievement) => ({
+        ...achievement,
+        ...(ACHIEVEMENT_PRESETS[achievement.key] || {}),
+      }));
     },
 
     getActiveChallenges: async () => {
-      return Challenge.find({ isActive: true });
+      const challenges = await Challenge.find({ isActive: true }).lean();
+      if (!challenges.length) {
+        return ACTIVE_CHALLENGE_PRESETS.map((challenge, index) => ({
+          id: `preset-${index + 1}`,
+          ...challenge,
+        }));
+      }
+
+      return challenges.map((challenge) => {
+        const preset = ACTIVE_CHALLENGE_PRESET_MAP[challenge.title];
+        if (!preset) {
+          return challenge;
+        }
+
+        return {
+          ...challenge,
+          description: preset.description,
+          condition: preset.condition,
+          type: preset.type,
+        };
+      });
     },
 
     getLevelProgress: async (_, __, context) => {
@@ -99,23 +135,22 @@ const resolvers = {
 
   Mutation: {
     register: async (_, { input }) => {
-      const { username, email, password, avatar } = input;
+      const { username, password, avatar } = input;
+      const trimmedUsername = username.trim();
+      const internalEmail = buildInternalEmail(trimmedUsername);
+      assertValidPassword(password);
 
       // Check for existing user
       const existingUser = await User.findOne({
-        $or: [{ email }, { username }],
+        $or: [{ email: internalEmail }, { username: buildUsernameLookup(trimmedUsername) }],
       });
       if (existingUser) {
-        throw new Error(
-          existingUser.email === email
-            ? 'Email already registered'
-            : 'Username already taken'
-        );
+        throw new Error('Username already taken');
       }
 
       const user = new User({
-        username,
-        email,
+        username: trimmedUsername,
+        email: internalEmail,
         passwordHash: password, // Pre-save hook will hash this
         avatar: avatar || '🚀',
       });
@@ -130,12 +165,12 @@ const resolvers = {
       return { token, user: { ...userObj, id: user._id.toString() } };
     },
 
-    login: async (_, { email, password }) => {
-      const user = await User.findOne({ email });
-      if (!user) throw new Error('Invalid email or password');
+    login: async (_, { username, password }) => {
+      const user = await User.findOne({ username: buildUsernameLookup(username) });
+      if (!user) throw new Error('Invalid username or password');
 
       const isValid = await user.comparePassword(password);
-      if (!isValid) throw new Error('Invalid email or password');
+      if (!isValid) throw new Error('Invalid username or password');
 
       const token = generateToken(user);
       const userObj = user.toObject();
@@ -263,7 +298,8 @@ const resolvers = {
       const user = requireAuth(context);
 
       const achievement = await Achievement.findOne({ key });
-      if (!achievement) throw new Error('Achievement not found');
+      const achievementPreset = ACHIEVEMENT_PRESETS[key];
+      if (!achievement && !achievementPreset) throw new Error('Achievement not found');
 
       const fullUser = await User.findById(user.id);
       if (fullUser.achievements.includes(key)) {
@@ -271,8 +307,8 @@ const resolvers = {
       }
 
       fullUser.achievements.push(key);
-      fullUser.xp += achievement.xpReward;
-      fullUser.stardust += achievement.stardustReward;
+      fullUser.xp += achievement?.xpReward ?? achievementPreset.xpReward;
+      fullUser.stardust += achievement?.stardustReward ?? achievementPreset.stardustReward;
 
       // Recalculate level
       const newLevel = calculateLevel(fullUser.xp);

@@ -103,7 +103,6 @@ const typeDefs = `#graphql
 
   input RegisterInput {
     username: String!
-    email: String!
     password: String!
     avatar: String
   }
@@ -136,7 +135,7 @@ const typeDefs = `#graphql
 
   type Mutation {
     register(input: RegisterInput!): AuthPayload!
-    login(email: String!, password: String!): AuthPayload!
+    login(username: String!, password: String!): AuthPayload!
     saveGameResult(input: GameResultInput!): GameProgress!
     purchasePowerUp(powerUpId: String!): User!
     claimAchievement(key: String!): User!

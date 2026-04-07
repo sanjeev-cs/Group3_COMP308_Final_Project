@@ -1,40 +1,67 @@
-.dashboard-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+.dashboard-page {
+  padding-bottom: 2rem;
 }
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
 .welcome-section { display: flex; align-items: center; gap: 1rem; }
-.welcome-avatar { font-size: 2.5rem; }
-.welcome-sub { color: #78716c; font-size: 0.95rem; }
+.welcome-avatar { font-size: 2.7rem; }
+.welcome-sub { color: var(--text-muted); font-size: 0.98rem; }
 .dashboard-xp { margin-bottom: 2rem; }
 .dashboard-section { margin-top: 2rem; }
-.dashboard-section h2 { margin-bottom: 1rem; font-size: 1.2rem; }
+.dashboard-section h2 { margin-bottom: 1rem; }
 
 .mission-progress-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.9rem;
 }
-.mission-card-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
-.mission-emoji { font-size: 1.8rem; }
-.mission-card h3 { font-size: 0.95rem; margin-bottom: 0.2rem; }
-.mission-card-stats {
-  display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 0.82rem; color: #78716c;
-}
-.mission-card-stats strong { color: #e4e4e7; }
-.mission-not-played { color: #57534e; font-style: italic; font-size: 0.85rem; }
 
-.challenges-list { display: flex; flex-direction: column; gap: 0.6rem; }
-.challenge-card {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 1rem 1.2rem; background: #1c1917; border: 1px solid #292524; border-radius: 10px;
+.mission-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; }
+.mission-emoji { font-size: 1.9rem; }
+.mission-card h3 { margin-bottom: 0.25rem; }
+.mission-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
-.challenge-info h4 { font-size: 0.9rem; margin: 0.2rem 0 0.1rem; }
-.challenge-info p { font-size: 0.82rem; color: #78716c; }
+
+.mission-card-stats strong { color: var(--text-main); }
+.mission-not-played { color: var(--text-dim); font-style: italic; font-size: 0.86rem; }
+
+.challenges-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.challenge-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.challenge-info h4 { font-size: 1rem; margin: 0.35rem 0 0.15rem; }
+.challenge-info p { font-size: 0.84rem; color: var(--text-muted); }
+
 .challenge-rewards {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem;
-  font-size: 0.72rem; color: #f59e0b; white-space: nowrap; font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.24rem;
+  font-size: 0.76rem;
+  color: #fde68a;
+  white-space: nowrap;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {
   .dashboard-header { flex-direction: column; align-items: flex-start; }
-  .challenge-card { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-  .challenge-rewards { flex-direction: row; gap: 0.75rem; }
+  .challenge-card { flex-direction: column; align-items: flex-start; }
+  .challenge-rewards { align-items: flex-start; }
 }

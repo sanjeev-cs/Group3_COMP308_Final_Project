@@ -13,6 +13,8 @@ const AchievementPopup = ({ achievement, onClose }) => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+
+    return undefined;
   }, [achievement, onClose]);
 
   if (!achievement) return null;
@@ -23,9 +25,7 @@ const AchievementPopup = ({ achievement, onClose }) => {
       <div className="achievement-popup-content">
         <div className="achievement-popup-title">Achievement Unlocked!</div>
         <div className="achievement-popup-name">{achievement.name}</div>
-        <div className="achievement-popup-rewards">
-          +{achievement.xpReward} XP • +{achievement.stardustReward} 💎
-        </div>
+        <div className="achievement-popup-rewards">+{achievement.xpReward} XP</div>
       </div>
     </div>
   );

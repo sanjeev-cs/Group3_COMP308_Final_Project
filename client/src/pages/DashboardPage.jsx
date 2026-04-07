@@ -2,7 +2,9 @@ import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { GET_MY_PROGRESS, GET_LEVEL_PROGRESS, GET_ACTIVE_CHALLENGES } from '../graphql/queries.js';
+import PageShell from '../components/layout/PageShell.jsx';
 import XPBar from '../components/XPBar.jsx';
+import { MISSION_ORDER, getMissionMeta } from '../constants/missionMeta.js';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
@@ -14,35 +16,44 @@ const DashboardPage = () => {
   const progress = progressData?.getMyProgress || [];
   const levelProgress = levelData?.getLevelProgress;
   const challenges = challengeData?.getActiveChallenges || [];
+  const clearedMissions = progress.filter((entry) => entry.completed).length;
+  const missionCards = MISSION_ORDER.map((missionId) => {
+    const mission = getMissionMeta(missionId);
+    return {
+      id: mission.id,
+      name: mission.name,
+      difficulty: mission.difficulty,
+      marker: mission.marker,
+    };
+  });
 
-  const renderStars = (count) => {
-    return (
-      <span className="stars">
-        {[1, 2, 3].map((i) => (
-          <span key={i} className={i <= count ? 'star-filled' : 'star-empty'}>★</span>
-        ))}
-      </span>
-    );
-  };
+  const renderStars = (count) => (
+    <span className="stars">
+      {[1, 2, 3].map((value) => (
+        <span key={value} className={value <= count ? 'star-filled' : 'star-empty'}>*</span>
+      ))}
+    </span>
+  );
 
   return (
-    <div className="dashboard-page page" id="dashboard-page">
-      <div className="container">
-        {/* Welcome Header */}
-        <div className="dashboard-header animate-fadeIn">
+    <PageShell
+      title="Command Deck"
+      subtitle="Track your level, active challenges, and mission performance."
+      backTo="/"
+      backLabel="Home"
+      action={<Link to="/game" className="btn btn-primary btn-lg" id="dash-play-btn">Launch Mission</Link>}
+    >
+      <div className="dashboard-page page" id="dashboard-page">
+        <div className="dashboard-header animate-fadeIn card">
           <div className="welcome-section">
             <span className="welcome-avatar">{user?.avatar}</span>
             <div>
-              <h1>Welcome, {user?.username}!</h1>
+              <h2>Welcome, {user?.username}!</h2>
               <p className="welcome-sub">Ready for another mission, Commander?</p>
             </div>
           </div>
-          <Link to="/game" className="btn btn-primary btn-lg" id="dash-play-btn">
-            🎮 Play Now
-          </Link>
         </div>
 
-        {/* XP Bar */}
         {levelProgress && (
           <div className="dashboard-xp animate-fadeIn">
             <XPBar
@@ -53,7 +64,6 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Stats Grid */}
         <div className="stat-grid animate-fadeIn">
           <div className="stat-item">
             <div className="stat-value">{user?.stats?.gamesPlayed || 0}</div>
@@ -64,29 +74,25 @@ const DashboardPage = () => {
             <div className="stat-label">Total Score</div>
           </div>
           <div className="stat-item">
-            <div className="stat-value">{user?.stats?.highestCombo || 0}×</div>
+            <div className="stat-value">{user?.stats?.highestCombo || 0}x</div>
             <div className="stat-label">Best Combo</div>
           </div>
           <div className="stat-item">
-            <div className="stat-value">💎 {user?.stardust || 0}</div>
-            <div className="stat-label">Stardust</div>
+            <div className="stat-value">{clearedMissions}</div>
+            <div className="stat-label">Missions Cleared</div>
           </div>
         </div>
 
-        {/* Mission Progress */}
         <section className="dashboard-section">
           <h2>Mission Progress</h2>
           <div className="mission-progress-grid">
-            {[
-              { id: 1, name: 'Asteroid Belt', emoji: '🪨', difficulty: 'Easy' },
-              { id: 2, name: 'Drone Swarm', emoji: '👾', difficulty: 'Medium' },
-              { id: 3, name: 'Meteor Storm', emoji: '☄️', difficulty: 'Hard' },
-            ].map((mission) => {
-              const mp = progress.find((p) => p.missionId === mission.id);
+            {missionCards.map((mission) => {
+              const missionProgress = progress.find((entry) => entry.missionId === mission.id);
+
               return (
                 <div className="card mission-card" key={mission.id}>
                   <div className="mission-card-header">
-                    <span className="mission-emoji">{mission.emoji}</span>
+                    <span className="mission-emoji">{mission.marker}</span>
                     <div>
                       <h3>{mission.name}</h3>
                       <span className={`badge badge-${mission.difficulty.toLowerCase()}`}>
@@ -94,12 +100,12 @@ const DashboardPage = () => {
                       </span>
                     </div>
                   </div>
-                  {mp ? (
+                  {missionProgress ? (
                     <div className="mission-card-stats">
-                      <div>Best: <strong>{mp.score}</strong></div>
-                      <div>Attempts: {mp.attempts}</div>
-                      <div>{renderStars(mp.starsEarned)}</div>
-                      {mp.completed && <span className="badge badge-easy">✓ Completed</span>}
+                      <div>Best: <strong>{missionProgress.score}</strong></div>
+                      <div>Attempts: {missionProgress.attempts}</div>
+                      <div>{renderStars(missionProgress.starsEarned)}</div>
+                      {missionProgress.completed && <span className="badge badge-easy">Cleared</span>}
                     </div>
                   ) : (
                     <p className="mission-not-played">Not yet attempted</p>
@@ -110,23 +116,21 @@ const DashboardPage = () => {
           </div>
         </section>
 
-        {/* Active Challenges */}
         <section className="dashboard-section">
           <h2>Active Challenges</h2>
           {challenges.length === 0 ? (
             <p className="text-muted">No active challenges right now.</p>
           ) : (
             <div className="challenges-list">
-              {challenges.map((c) => (
-                <div className="card challenge-card" key={c.id}>
+              {challenges.map((challenge) => (
+                <div className="card challenge-card" key={challenge.id}>
                   <div className="challenge-info">
-                    <span className={`badge badge-${c.type}`}>{c.type}</span>
-                    <h4>{c.title}</h4>
-                    <p>{c.description}</p>
+                    <span className={`badge badge-${challenge.type}`}>{challenge.type}</span>
+                    <h4>{challenge.title}</h4>
+                    <p>{challenge.description}</p>
                   </div>
                   <div className="challenge-rewards">
-                    <span>+{c.xpReward} XP</span>
-                    <span>+{c.stardustReward} 💎</span>
+                    <span>+{challenge.xpReward} XP</span>
                   </div>
                 </div>
               ))}
@@ -134,7 +138,7 @@ const DashboardPage = () => {
           )}
         </section>
       </div>
-    </div>
+    </PageShell>
   );
 };
 

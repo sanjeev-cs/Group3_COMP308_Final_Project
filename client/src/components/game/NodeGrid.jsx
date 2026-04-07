@@ -7,7 +7,7 @@ import Explosion from './Explosion.jsx';
 
 const OBJECT_TYPES = [
   'asteroid', 'asteroid', 'asteroid', 'asteroid',
-  'drone', 'drone',
+  'ghost_boy', 'ghost_boy',
   'energy',
   'stardust',
   'mine',

@@ -1,5 +1,16 @@
 import { create } from 'zustand';
 
+const OBJECT_HEALTH = {
+  meteor: 1,
+  mine: 1,
+  ghost_boy: 1,
+  king_boo: 1,
+  chuck: 1,
+  boss: 3,
+  energy: 1,
+  stardust: 1,
+};
+
 /**
  * Zustand store for high-frequency game state.
  * Kept outside React render cycle for performance.
@@ -51,7 +62,8 @@ const useGameStore = create((set, get) => ({
   spawnObject: (type, position, speed) => {
     const state = get();
     const id = state.nextObjectId;
-    const obj = { id, type, position, speed, alive: true, spawnedAt: Date.now() };
+    const health = OBJECT_HEALTH[type] ?? 1;
+    const obj = { id, type, position, speed, health, maxHealth: health, alive: true, spawnedAt: Date.now() };
     set({
       gameObjects: [...state.gameObjects, obj],
       nextObjectId: id + 1,
@@ -67,12 +79,27 @@ const useGameStore = create((set, get) => ({
   // Player clicked a target
   hitObject: (id, type) => {
     const state = get();
+    const target = state.gameObjects.find((object) => object.id === id);
+    const targetType = target?.type || type;
+    const currentHealth = target?.health ?? (OBJECT_HEALTH[targetType] ?? 1);
+
+    if (currentHealth > 1) {
+      set({
+        gameObjects: state.gameObjects.map((object) => (
+          object.id === id
+            ? { ...object, health: object.health - 1 }
+            : object
+        )),
+      });
+      return { destroyed: false, remainingHealth: currentHealth - 1 };
+    }
+
     let scoreAdd = 0;
     let livesChange = 0;
     let comboAdd = 0;
     let timeAdd = 0;
 
-    switch (type) {
+    switch (targetType) {
       case 'meteor':
         scoreAdd = 10;
         comboAdd = 1;
@@ -104,7 +131,6 @@ const useGameStore = create((set, get) => ({
         break;
       case 'mine':
         scoreAdd = -15;
-        livesChange = -1;
         comboAdd = -state.combo; // Reset combo
         break;
       default:
@@ -123,7 +149,7 @@ const useGameStore = create((set, get) => ({
       lives: newLives,
       combo: newCombo,
       maxCombo: Math.max(state.maxCombo, newCombo),
-      objectsDestroyed: state.objectsDestroyed + (type !== 'mine' ? 1 : 0),
+      objectsDestroyed: state.objectsDestroyed + (targetType !== 'mine' ? 1 : 0),
       timeRemaining: state.timeRemaining + timeAdd,
       gameObjects: state.gameObjects.filter((o) => o.id !== id),
     });
@@ -132,6 +158,8 @@ const useGameStore = create((set, get) => ({
     if (newLives <= 0) {
       set({ status: 'failed' });
     }
+
+    return { destroyed: true, remainingHealth: 0 };
   },
 
   // Object reached the station (missed)

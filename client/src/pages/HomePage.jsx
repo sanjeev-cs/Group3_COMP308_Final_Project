@@ -1,20 +1,56 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import AuthModal from '../components/auth/AuthModal.jsx';
+import UiSceneBackground from '../components/layout/UiSceneBackground.jsx';
+import { MISSION_ORDER, getMissionMeta } from '../constants/missionMeta.js';
 import './HomePage.css';
 
-const HomePage = () => {
+const HomePage = ({ authMode = null }) => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const routeMode = authMode || (location.pathname === '/login' ? 'login' : location.pathname === '/register' ? 'register' : null);
+  const missionPreview = MISSION_ORDER.map((missionId) => {
+    const mission = getMissionMeta(missionId);
+    return {
+      diff: mission.difficulty.toLowerCase(),
+      name: mission.name,
+      desc: mission.previewDesc,
+    };
+  });
+
+  useEffect(() => {
+    if (user && routeMode) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate, routeMode, user]);
+
+  const closeAuthModal = () => {
+    navigate('/', { replace: true });
+  };
+
+  const switchAuthMode = (nextMode) => {
+    navigate(nextMode === 'register' ? '/register' : '/login', { replace: true });
+  };
 
   return (
     <div className="home-page" id="home-page">
+      <div className="home-scene">
+        <UiSceneBackground />
+      </div>
       <section className="hero">
         <div className="hero-bg" />
         <div className="hero-content">
-          <h1 className="hero-title">Fly fast. Hit hard. Don't die.</h1>
+          <span className="hero-kicker">Stellar Smash</span>
+          <h1 className="hero-title">
+            <span>Fly fast.</span>
+            <span>Survive longer.</span>
+          </h1>
           <p className="hero-subtitle">
-            A 3D space game where you pilot a ship through waves of asteroids,
-            drones and mines. Steer with your mouse, hold to shoot, survive as
-            long as you can.
+            A 3D space survival run where you steer with the mouse, fire toward
+            your cursor, and weave through asteroids, mines, and spectral
+            threats inside a collapsing tunnel.
           </p>
           <div className="hero-actions">
             {user ? (
@@ -29,53 +65,42 @@ const HomePage = () => {
               </>
             )}
           </div>
+
+          <div className="hero-summary card">
+            <div className="hero-summary-strip">
+              <div className="summary-chip">
+                <span className="summary-label">Aim</span>
+                <strong>Mouse steer + click to fire</strong>
+              </div>
+              <div className="summary-chip">
+                <span className="summary-label">Mode</span>
+                <strong>60 second survival runs</strong>
+              </div>
+              <div className="summary-chip">
+                <span className="summary-label">Goal</span>
+                <strong>Build combo and stay alive</strong>
+              </div>
+            </div>
+
+            <div className="mission-preview">
+              {missionPreview.map((mission) => (
+                <div key={mission.name} className={`mission-preview-card ${mission.diff}`}>
+                  <div className="mission-preview-top">
+                    <span className={`mission-diff ${mission.diff}`} />
+                    <span className="mission-preview-tier">{mission.diff}</span>
+                  </div>
+                  <h2>{mission.name}</h2>
+                  <p>{mission.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <hr className="section-divider" />
-
-      <section className="features-section container">
-        <h2>What you're getting into</h2>
-        <p className="features-lead">Three minutes per round. Infinite replay value.</p>
-        <div className="features-list">
-          <div className="feature-cell">
-            <div className="feature-num">01</div>
-            <h3>Hyper-Tunnel flight</h3>
-            <p>Navigate a massive tubular structure at high speed. Move the mouse to steer your ship along the inner wall. Hold click to shoot energy bolts.</p>
-          </div>
-          <div className="feature-cell">
-            <div className="feature-num">02</div>
-            <h3>Combo multiplier</h3>
-            <p>Every consecutive hit raises your multiplier. Miss once and it's gone. Risk versus reward, every second.</p>
-          </div>
-          <div className="feature-cell">
-            <div className="feature-num">03</div>
-            <h3>Progress and rank</h3>
-            <p>XP, levels, stardust currency, achievements and a live leaderboard. Your scores persist across sessions.</p>
-          </div>
-        </div>
-      </section>
-
-      <hr className="section-divider" />
-
-      <section className="missions-section container">
-        <h2>Missions</h2>
-        {[
-          { diff: 'easy',   name: 'The Minefield',  desc: 'Classic survival. Learn to dodge massive meteors and mines.' },
-          { diff: 'medium', name: 'Alien Swarm',    desc: 'Faster enemies including Buster Drones and Alien Metroids.' },
-          { diff: 'hard',   name: 'The Absurd Threat', desc: 'Maximum speed! Survive the Boss and Angry Bird.' },
-        ].map(m => (
-          <div key={m.name} className="mission-row">
-            <span className={`mission-diff ${m.diff}`} />
-            <span className="mission-name">{m.name}</span>
-            <span className="mission-desc">{m.desc}</span>
-          </div>
-        ))}
-      </section>
-
-      <footer className="home-footer">
-        Stellar Smash · COMP308 Group 3 · React + Three.js + GraphQL
-      </footer>
+      {!user && routeMode && (
+        <AuthModal mode={routeMode} onModeChange={switchAuthMode} onClose={closeAuthModal} />
+      )}
     </div>
   );
 };

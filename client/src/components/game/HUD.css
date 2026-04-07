@@ -3,131 +3,249 @@
   inset: 0;
   pointer-events: none;
   z-index: 10;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Trebuchet MS', 'Segoe UI Variable', 'Segoe UI', sans-serif;
   padding: 1.2rem;
 }
 
-/* Top left — score */
+.hud-panel {
+  background: #111824;
+  border: 1px solid #2a3548;
+  border-radius: 16px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+.hud-briefing {
+  position: absolute;
+  top: 4.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(360px, calc(100% - 3rem));
+  padding: 0.85rem 0.95rem;
+  text-align: left;
+  animation: fadeIn 0.24s ease;
+}
+
+.hud-briefing-kicker {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #fbbf24;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.hud-briefing-heading {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-bottom: 0.55rem;
+}
+
+.hud-briefing-targets {
+  display: grid;
+  gap: 0.38rem;
+  margin-bottom: 0.55rem;
+}
+
+.hud-briefing-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  font-size: 0.78rem;
+  color: rgba(235, 244, 255, 0.92);
+}
+
+.hud-briefing-target strong {
+  color: #86efac;
+  font-size: 0.78rem;
+}
+
+.hud-briefing-avoid {
+  font-size: 0.74rem;
+  color: #fda4af;
+  line-height: 1.45;
+}
+
 .hud-score {
   position: absolute;
-  top: 1.2rem; left: 1.5rem;
+  top: 1.2rem;
+  left: 1.5rem;
+  padding: 0.8rem 0.9rem 0.65rem;
+  min-width: 112px;
 }
+
 .hud-score-num {
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 900;
   color: #fff;
   line-height: 1;
-}
-.hud-score-label {
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: #78716c;
-  margin-top: 0.2rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
-/* Top right — timer */
+.hud-score-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(235, 244, 255, 0.88);
+  margin-top: 0.28rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .hud-timer {
   position: absolute;
-  top: 1.2rem; right: 1.5rem;
+  top: 1.2rem;
+  right: 1.5rem;
   text-align: right;
-}
-.hud-timer-num {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #e4e4e7;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.hud-timer-num.low { color: #ef4444; }
-.hud-timer-label {
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: #78716c;
-  margin-top: 0.2rem;
+  padding: 0.8rem 0.9rem 0.65rem;
+  min-width: 128px;
 }
 
-/* Bottom center — lives */
+.hud-timer-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+.hud-timer-num.low { color: #fb7185; }
+
+.hud-timer-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(235, 244, 255, 0.88);
+  margin-top: 0.28rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .hud-lives {
   position: absolute;
   bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.9rem 0.6rem;
+}
+
+.hud-lives-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: rgba(235, 244, 255, 0.88);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hud-lives-bars {
+  display: flex;
   gap: 6px;
 }
+
 .hud-life {
-  width: 32px;
-  height: 4px;
-  border-radius: 2px;
+  width: 36px;
+  height: 6px;
+  border-radius: 999px;
   transition: background 0.3s;
 }
-.hud-life.on  { background: #e4e4e7; }
-.hud-life.off { background: #292524; }
 
-/* Combo — appears right of score */
+.hud-life.on { background: #dbeafe; box-shadow: 0 0 14px rgba(34, 211, 238, 0.35); }
+.hud-life.off { background: rgba(148, 163, 184, 0.18); }
+
 .hud-combo {
   position: absolute;
   top: 1.2rem;
   left: 1.5rem;
-  margin-top: 3.2rem;
+  margin-top: 4.25rem;
+  padding: 0.55rem 0.8rem;
 }
+
 .hud-combo-num {
   font-size: 1.1rem;
-  font-weight: 700;
-  color: #f59e0b;
+  font-weight: 800;
+  color: #fbbf24;
 }
+
 .hud-combo-label {
-  font-size: 0.6rem;
-  color: #78716c;
+  font-size: 0.62rem;
+  color: rgba(235, 244, 255, 0.85);
   margin-left: 0.3rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-/* Center reticle — very subtle + */
-.hud-cross {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.15;
-}
-.hud-cross::before,
-.hud-cross::after {
-  content: '';
-  position: absolute;
-  background: #fff;
-}
-.hud-cross::before { width: 1px; height: 20px; left: 0; top: -10px; }
-.hud-cross::after  { width: 20px; height: 1px; left: -10px; top: 0; }
-
-/* Popups */
 .hud-popups {
   position: absolute;
-  top: 40%; left: 50%;
+  top: 40%;
+  left: 50%;
   transform: translateX(-50%);
 }
+
 .hud-popup {
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 800;
   animation: popUp 0.9s ease-out forwards;
   white-space: nowrap;
   position: absolute;
-}
-.hud-popup.pos { color: #fbbf24; }
-.hud-popup.neg { color: #ef4444; }
-@keyframes popUp {
-  0% { opacity:1; transform:translateY(0); }
-  100% { opacity:0; transform:translateY(-40px); }
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
-/* Bottom left — hint */
+.hud-popup.pos { color: #fbbf24; }
+.hud-popup.neg { color: #fb7185; }
+
+@keyframes popUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+
 .hud-hint {
   position: absolute;
-  bottom: 1.5rem; left: 1.5rem;
-  font-size: 0.62rem;
-  color: #57534e;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  font-size: 0.64rem;
+  color: rgba(235, 244, 255, 0.78);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+.hud-abort-btn {
+  position: absolute;
+  top: 0.95rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #121c28;
+  border: 1px solid #39485f;
+  color: #e2e8f0;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 999px;
+  pointer-events: auto;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.hud-abort-btn:hover {
+  border-color: #52637c;
+  background: #172332;
+  color: #fff;
 }
 
 @media (max-width: 768px) {
   .hud-score-num { font-size: 1.5rem; }
   .hud-timer-num { font-size: 1.3rem; }
   .hud-hint { display: none; }
+  .hud-briefing {
+    top: 4.8rem;
+  }
+  .hud-score,
+  .hud-timer {
+    min-width: 0;
+  }
 }
