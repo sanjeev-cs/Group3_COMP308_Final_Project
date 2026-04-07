@@ -1,114 +1,80 @@
-# Stellar Smash 🚀
+# Stellar Smash 🚀 
 
-A 3D space defense reaction game built with the MERN stack, GraphQL, and Three.js.
+**Stellar Smash** is a high-fidelity 3D Hyper-Tunnel rail-shooter built with the MERN stack, GraphQL, and modern web graphics. You race down a cosmic procedural tunnel, defending against bizarre and dangerous entities!
 
-## Tech Stack
+## 🌟 Tech Stack
 
-| Layer | Tech |
+| Layer | Technology |
 |---|---|
-| **Frontend** | React 18 (Vite), React Three Fiber, Zustand, React Router v6 |
-| **3D Engine** | Three.js via `@react-three/fiber` + `@react-three/drei` |
-| **API** | GraphQL — Apollo Server 4 + Express.js |
-| **Auth** | JWT (jsonwebtoken + bcryptjs) |
+| **Frontend UI** | React 18 (Vite), Zustand, React Router v6 |
+| **3D Engine & Graphics** | Three.js via `@react-three/fiber` & `@react-three/drei` |
+| **API** | GraphQL (Apollo Server 4 + Apollo Client) & Express.js |
 | **Database** | MongoDB + Mongoose |
-| **Real-time** | GraphQL Subscriptions (graphql-ws) |
+| **Real-time** | GraphQL Subscriptions (WebSockets via `graphql-ws`) for Live Leaderboards |
+| **Authentication** | JWT (jsonwebtoken + bcryptjs) |
 
-## Prerequisites
+---
 
+## 🛠️ Local Setup Instructions
+
+**1. Prerequisites**
 - Node.js 18+
-- MongoDB (local or Atlas)
+- MongoDB (running locally on port 27017 or a Mongo Atlas URI)
 
-## Setup
-
-### 1. Server
-
+**2. Backend Setup (`/server`)**
 ```bash
 cd server
 npm install
 ```
-
-Create a `.env` file (copy from `.env.example`):
-
-```
+Create a `.env` file from the example:
+```env
 PORT=4000
 MONGODB_URI=mongodb://localhost:27017/stellar-smash
-JWT_SECRET=your_secret_here
-JWT_EXPIRES_IN=7d
+JWT_SECRET=super_secret_jwt_key
 CLIENT_URL=http://localhost:5173
 ```
-
-Seed the database:
-
+Seed the database with initial variables and run the development server:
 ```bash
 npm run seed
-```
-
-Start the server:
-
-```bash
 npm run dev
 ```
 
-### 2. Client
-
+**3. Frontend Setup (`/client`)**
 ```bash
 cd client
 npm install
 npm run dev
 ```
+*The React app will boot up in Vite on `http://localhost:5173`. Open it in your browser and start playing!*
 
-### 3. Play
+---
 
-Open `http://localhost:5173` in your browser.
+## 🎮 Gameplay Mechanics & Features
 
-## Game Overview
+**The Core Loop**: You are speeding down a dynamic, high-speed 3D tunnel. Various custom enemies and obstacles will hurdle toward your screen. Your goal is to aim precisely and click to destroy target threats to accrue points before time runs out, all while dodging the deadly mines.
 
-**Concept**: You're a space station commander. Asteroids, alien drones, and cosmic debris fly toward you in 3D space — click to destroy/collect them.
+### Mechanics & Interactivity
+- 🎯 **Raycast Targeting**: The 3D engine uses precise hitbox centers to register your targeting. Click quickly and accurately.
+- 💥 **Forcefields**: Your defense system. Taking damage from mines drops your forcefield strength.
+- 🏆 **Dynamic Live Leaderboard**: After completing a level, your score automatically posts to the real-time GraphQL subscriptions leaderboard.
 
-**Object Types**:
-- 🪨 **Asteroid** (brown) — +10 points
-- 👾 **Drone** (red) — +20 points
-- 💠 **Energy Orb** (cyan) — +15 points
-- ✨ **Stardust** (gold) — +25 points + bonus time
-- 💣 **Mine** (pulsing red) — DON'T click! -15 pts + lose a life
+### Custom Levels & Enemies
+The game escalates through 3 uniquely crafted difficulty levels, bringing out custom 3D models and increasingly dangerous bosses.
 
-**Missions**:
-1. Asteroid Belt (Easy) — 60s, slow
-2. Drone Swarm (Medium) — 50s, medium speed
-3. Meteor Storm (Hard) — 45s, fast
+*Across all levels, **Avoid Space Mines**. Clicking a mine results in a **15 point penalty** and the **loss of 1 Forcefield**.*
 
-## Features
+#### **Level 1**
+An introductory flight through standard cosmic debris. Perfect for getting your bearings and practicing aim.
+- ☄️ **Meteor** (+10 Points)
 
-- JWT authentication (register/login)
-- 3D game rendered with Three.js (React Three Fiber)
-- GraphQL API with Apollo Server 4
-- Real-time leaderboard via GraphQL subscriptions
-- XP & leveling system (10 levels)
-- 6 unlockable achievements
-- 3 purchasable power-ups (Stardust currency)
-- Daily & weekly challenges
-- Responsive design
+#### **Level 2**
+Things get spooky and bizarre as you encounter custom modeled spectral threats. Speed and complexity escalate.
+- 👻 **Ghost Boy** (+20 Points)
+- 👑 **King Boo** (+30 Points)
 
-## Project Structure
+#### **Level 3**
+The ultimate challenge. Incredible speeds and the highest value targets test your reflexes to their limit.
+- 🪓 **Chuck** (+50 Points)
+- ☠️ **The Boss** (+100 Points)
 
-```
-├── server/           # Express + Apollo Server + MongoDB
-│   └── src/
-│       ├── config/   # Database connection
-│       ├── models/   # Mongoose models (5)
-│       ├── graphql/  # TypeDefs + Resolvers
-│       ├── middleware/ # JWT auth
-│       ├── utils/    # Game logic, JWT helpers
-│       └── seed/     # Database seeder
-│
-├── client/           # React Vite + Three.js
-│   └── src/
-│       ├── config/   # Apollo Client
-│       ├── graphql/  # Queries, Mutations, Subscriptions
-│       ├── store/    # Zustand game state
-│       ├── contexts/ # Auth context
-│       ├── components/ # UI + Game components
-│       └── pages/    # 7 pages
-```
-
-## Group 3 — COMP308 Final Project
+*Can you beat the boss and claim the number one spot on the live leaderboard? Good luck!*

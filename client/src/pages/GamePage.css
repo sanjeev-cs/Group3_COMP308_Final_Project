@@ -72,6 +72,21 @@
   font-weight: 600;
 }
 
+.mission-shell .page-shell-heading {
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.mission-shell .page-shell-title {
+  font-size: 2.1rem;
+}
+
+.mission-shell .page-back-btn {
+  align-self: flex-start;
+  margin-bottom: 0.5rem;
+}
+
 /* Mission select */
 .mission-page {
   padding-bottom: 2rem;
@@ -80,14 +95,26 @@
 .mission-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 1.25rem;
 }
 
 .mission-item {
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  padding: 1.5rem 2rem !important;
+  display: block !important;
+  width: 100%;
+  max-width: 550px;
+  height: auto !important;
+  min-height: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+.mission-item > * {
+  margin-bottom: 0.6rem !important;
+}
+
+.mission-item > *:last-child {
+  margin-bottom: 0 !important;
 }
 
 .mission-item-medium {
@@ -133,8 +160,6 @@
   font-size: 0.75rem;
   color: var(--text-dim);
 }
-
-.mission-item .btn { align-self: flex-start; margin-top: 0.25rem; }
 
 .mission-locked-text { font-size: 0.78rem; color: #57534e; }
 
