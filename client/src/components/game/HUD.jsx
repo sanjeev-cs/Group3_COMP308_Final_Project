@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import useGameStore from '../../store/gameStore.js';
 import { getMissionBriefing } from './missionBriefings.js';
+import { getAudioMuted, setAudioMuted } from './gameSoundManager.js';
 import './HUD.css';
 
 const HUD = () => {
@@ -15,6 +16,7 @@ const HUD = () => {
 
   const [popups, setPopups] = useState([]);
   const [showBriefing, setShowBriefing] = useState(true);
+  const [muted, setMuted] = useState(getAudioMuted);
   const previousScore = useRef(0);
 
   useEffect(() => {
@@ -47,6 +49,12 @@ const HUD = () => {
   const lowTime = time <= 10;
   const multiplier = 1 + Math.floor(combo / 5) * 0.5;
   const briefing = getMissionBriefing(missionId);
+
+  const handleToggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    setAudioMuted(next);
+  };
 
   return (
     <div className="hud" id="game-hud">
@@ -101,6 +109,10 @@ const HUD = () => {
       </div>
 
       <div className="hud-hint">Move mouse to aim, ship trails behind, hold click to fire</div>
+
+      <button className="hud-sound-btn" onClick={handleToggleMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>
+        {muted ? '🔇' : '🔊'}
+      </button>
 
       <button className="hud-abort-btn" onClick={() => setStatus('failed')}>
         Abort Mission
