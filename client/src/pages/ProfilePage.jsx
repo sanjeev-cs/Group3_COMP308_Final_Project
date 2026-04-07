@@ -130,7 +130,7 @@ const ProfilePage = () => {
                   key={achievement.key}
                   id={`achievement-${achievement.key}`}
                 >
-                  <span className="achievement-icon">{unlocked ? achievement.icon : 'Locked'}</span>
+                  <span className="achievement-icon">{unlocked ? achievement.icon : 'LOCK'}</span>
                   <div>
                     <h4>{achievement.name}</h4>
                     <p>{achievement.description}</p>

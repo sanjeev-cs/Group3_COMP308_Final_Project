@@ -87,7 +87,8 @@ const TYPES = {
   mine:      { color: '#f59e0b', scale: 0.8 },
   ghost_boy: { color: '#ef4444', scale: 1.0 }, 
   king_boo:  { color: '#34d399', scale: 0.005 },
-  red_angrybird: { color: '#ef4444', scale: 1.08 },
+  boss:      { color: '#ef4444', scale: 1.08 },
+  red:       { color: '#ef4444', scale: 1.08 },
   chuck:     { color: '#fcd34d', scale: 3.25 },
 };
 
@@ -206,8 +207,8 @@ const AlienModel = ({ scale }) => {
   return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
 };
 
-const RedAngrybirdModel = ({ scale }) => { 
-  const { scene, animations } = useGLTF('/models/red_angrybird.glb'); 
+const RedModel = ({ scale }) => { 
+  const { scene, animations } = useGLTF('/models/angrybird_red.glb'); 
   const group = useRef();
   const { actions } = useAnimations(animations, group);
   
@@ -223,11 +224,12 @@ const RedAngrybirdModel = ({ scale }) => {
   return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
 };
 
-const FunnyModel    = ({ scale }) => { const { scene } = useGLTF('/models/angrybird_chuck.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
+const ChuckModel    = ({ scale }) => { const { scene } = useGLTF('/models/angrybird_chuck.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
 
 const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   const ref = useRef();
-  const cfg = TYPES[type] || TYPES.asteroid;
+  const normalizedType = ['red', 'angrybird_red'].includes(type) ? 'boss' : type;
+  const cfg = TYPES[normalizedType] || TYPES.meteor;
   const alive = useRef(true);
 
   useEffect(() => {
@@ -237,21 +239,21 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
 
   useEffect(() => {
     if (ref.current) {
-      ref.current.userData.type = type;
+      ref.current.userData.type = normalizedType;
       ref.current.userData.speed = speed;
     }
-  }, [speed, type]);
+  }, [normalizedType, speed]);
 
   const ModelNode = useMemo(() => {
-    switch (type) {
+    switch (normalizedType) {
       case 'ghost_boy': return <GhostModel scale={cfg.scale} />;
       case 'mine':      return <MineModel scale={cfg.scale} />;
       case 'king_boo':  return <AlienModel scale={cfg.scale} />;
-      case 'red_angrybird': return <RedAngrybirdModel scale={cfg.scale} />;
-      case 'chuck':     return <FunnyModel scale={cfg.scale} />;
+      case 'boss':      return <RedModel scale={cfg.scale} />;
+      case 'chuck':     return <ChuckModel scale={cfg.scale} />;
       default:          return <AsteroidModel scale={cfg.scale} />;
     }
-  }, [type, cfg.scale]);
+  }, [normalizedType, cfg.scale]);
 
   useFrame((state, d) => {
     if (!ref.current || !alive.current) return;
@@ -280,7 +282,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   return (
     <group ref={ref} position={[px,py,pz]}>
       {ModelNode}
-      <pointLight color={cfg.color} intensity={type==='red_angrybird'?2.5:0} distance={6} />
+      <pointLight color={cfg.color} intensity={normalizedType === 'boss' ? 2.5 : 0} distance={6} />
     </group>
   );
 };
@@ -483,7 +485,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
         if (type === 'ghost_boy') speedMult = 2.4;
         if (type === 'king_boo') speedMult = 2.7;
         if (type === 'chuck') speedMult = 6.9;
-        if (type === 'red_angrybird') speedMult = 1.15;
+        if (type === 'boss' || type === 'red' || type === 'angrybird_red') speedMult = 1.15;
 
         spawn(type, [r * Math.cos(th), r * Math.sin(th), SPAWN_Z], speedMult + Math.random() * (cfg.speed || 1));
       }
