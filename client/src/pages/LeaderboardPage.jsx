@@ -9,6 +9,9 @@ const LeaderboardPage = () => {
   const { user } = useAuth();
   const { data, loading } = useQuery(GET_LEADERBOARD, {
     variables: { limit: 20 },
+    pollInterval: 5000,
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
   });
 
   const entries = data?.getLeaderboard || [];
@@ -22,7 +25,7 @@ const LeaderboardPage = () => {
     >
       <div className="leaderboard-page page" id="leaderboard-page">
         <div className="card leaderboard-card">
-          {loading ? (
+          {loading && entries.length === 0 ? (
             <div className="spinner-container">
               <div className="spinner" />
             </div>

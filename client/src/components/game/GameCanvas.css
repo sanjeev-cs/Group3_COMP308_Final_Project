@@ -4,5 +4,9 @@
   height: 100%;
   overflow: hidden;
   background: #08060a;
-  cursor: crosshair;
+  cursor: none;
+}
+
+.game-canvas-wrapper.game-canvas-locked {
+  cursor: none;
 }

@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { GET_MY_PROGRESS, GET_LEVEL_PROGRESS, GET_ACTIVE_CHALLENGES } from '../graphql/queries.js';
+import { GET_MY_PROGRESS, GET_LEVEL_PROGRESS } from '../graphql/queries.js';
 import PageShell from '../components/layout/PageShell.jsx';
 import XPBar from '../components/XPBar.jsx';
 import { MISSION_ORDER, getMissionMeta } from '../constants/missionMeta.js';
@@ -11,11 +11,9 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const { data: progressData } = useQuery(GET_MY_PROGRESS);
   const { data: levelData } = useQuery(GET_LEVEL_PROGRESS);
-  const { data: challengeData } = useQuery(GET_ACTIVE_CHALLENGES);
 
   const progress = progressData?.getMyProgress || [];
   const levelProgress = levelData?.getLevelProgress;
-  const challenges = challengeData?.getActiveChallenges || [];
   const clearedMissions = progress.filter((entry) => entry.completed).length;
   const missionCards = MISSION_ORDER.map((missionId) => {
     const mission = getMissionMeta(missionId);
@@ -26,14 +24,6 @@ const DashboardPage = () => {
       marker: mission.marker,
     };
   });
-
-  const renderStars = (count) => (
-    <span className="stars">
-      {[1, 2, 3].map((value) => (
-        <span key={value} className={value <= count ? 'star-filled' : 'star-empty'}>*</span>
-      ))}
-    </span>
-  );
 
   return (
     <PageShell
@@ -104,7 +94,6 @@ const DashboardPage = () => {
                     <div className="mission-card-stats">
                       <div>Best: <strong>{missionProgress.score}</strong></div>
                       <div>Attempts: {missionProgress.attempts}</div>
-                      <div>{renderStars(missionProgress.starsEarned)}</div>
                       {missionProgress.completed && <span className="badge badge-easy">Cleared</span>}
                     </div>
                   ) : (
@@ -114,28 +103,6 @@ const DashboardPage = () => {
               );
             })}
           </div>
-        </section>
-
-        <section className="dashboard-section">
-          <h2>Active Challenges</h2>
-          {challenges.length === 0 ? (
-            <p className="text-muted">No active challenges right now.</p>
-          ) : (
-            <div className="challenges-list">
-              {challenges.map((challenge) => (
-                <div className="card challenge-card" key={challenge.id}>
-                  <div className="challenge-info">
-                    <span className={`badge badge-${challenge.type}`}>{challenge.type}</span>
-                    <h4>{challenge.title}</h4>
-                    <p>{challenge.description}</p>
-                  </div>
-                  <div className="challenge-rewards">
-                    <span>+{challenge.xpReward} XP</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
       </div>
     </PageShell>

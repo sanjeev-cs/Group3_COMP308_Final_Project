@@ -169,7 +169,7 @@ const Bullet = ({ id, x, y, z, direction, onDone, registerTarget }) => {
 // ─── DYNAMIC MODEL LOADERS ───────────────────────
 const AsteroidModel = ({ scale }) => { const { scene } = useGLTF('/models/meteor.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
 const GhostModel = ({ scale }) => { 
-  const { scene, animations } = useGLTF('/models/aliens/ghost_boy.glb'); 
+  const { scene, animations } = useGLTF('/models/ghost_boy.glb'); 
   const group = useRef();
   const { actions } = useAnimations(animations, group);
   
@@ -186,7 +186,7 @@ const GhostModel = ({ scale }) => {
 };
 const MineModel     = ({ scale }) => { const { scene } = useGLTF('/models/mine.glb'); return <Center><Clone object={scene} scale={scale} /></Center>; };
 const AlienModel = ({ scale }) => { 
-  const { scene, animations } = useGLTF('/models/aliens/king_boo.glb'); 
+  const { scene, animations } = useGLTF('/models/king_boo.glb'); 
   const group = useRef();
   const { actions } = useAnimations(animations, group);
   
@@ -199,11 +199,7 @@ const AlienModel = ({ scale }) => {
     }
   }, [actions]);
 
-  return (
-    <group ref={group} rotation={[0, Math.PI / 2, 0]}>
-      <Center><Clone object={scene} scale={scale} /></Center>
-    </group>
-  ); 
+  return <group ref={group}><Center><Clone object={scene} scale={scale} /></Center></group>; 
 };
 
 const RedModel = ({ scale }) => { 
@@ -273,6 +269,11 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
     }
 
     if (normalizedType === 'boss') {
+      ref.current.lookAt(state.camera.position);
+      ref.current.rotateY(Math.PI);
+    }
+
+    if (normalizedType === 'king_boo') {
       ref.current.lookAt(state.camera.position);
       ref.current.rotateY(Math.PI);
     }
@@ -525,18 +526,19 @@ const GameLogic = ({ shipPos, aimPos }) => {
 };
 
 // ─── MOUSE LISTENER ───────────────────────────────
-const MouseControls = ({ shipTargetRef, aimRef }) => {
+const MouseControls = ({ shipTargetRef, aimRef, pointerRef }) => {
   useFrame(({ mouse, camera, viewport }) => {
     const shipBounds = getVisibleMovementBounds(viewport, camera, SHIP_Z, MOVEMENT_BOUND);
     const aimBounds = getVisibleMovementBounds(viewport, camera, CROSSHAIR_Z, TUNNEL_RADIUS - 0.8, { x: 0.6, y: 0.6 });
+    const pointer = pointerRef.current || mouse;
 
     if (shipTargetRef.current) {
-      shipTargetRef.current.set(mouse.x * shipBounds.x, mouse.y * shipBounds.y, SHIP_Z);
+      shipTargetRef.current.set(pointer.x * shipBounds.x, pointer.y * shipBounds.y, SHIP_Z);
       clampToBounds(shipTargetRef.current, shipBounds);
     }
 
     if (aimRef.current) {
-      aimRef.current.set(mouse.x * aimBounds.x, mouse.y * aimBounds.y, CROSSHAIR_Z);
+      aimRef.current.set(pointer.x * aimBounds.x, pointer.y * aimBounds.y, CROSSHAIR_Z);
     }
   });
   return null;
@@ -556,12 +558,77 @@ const SceneReady = ({ onReady }) => {
 };
 
 const GameCanvas = ({ onReady, className = '' }) => {
+  const wrapperRef = useRef(null);
   const shipTarget = useRef(new THREE.Vector3(0, 0, SHIP_Z));
   const shipPos = useRef(new THREE.Vector3(0, 0, SHIP_Z));
   const aimPos = useRef(new THREE.Vector3(0, 0, CROSSHAIR_Z));
+  const pointerRef = useRef({ x: 0, y: 0 });
+  const pointerLockedRef = useRef(false);
+  const [pointerLocked, setPointerLocked] = useState(false);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return undefined;
+
+    const clampPointer = () => {
+      pointerRef.current.x = THREE.MathUtils.clamp(pointerRef.current.x, -1, 1);
+      pointerRef.current.y = THREE.MathUtils.clamp(pointerRef.current.y, -1, 1);
+    };
+
+    const updateFromClientPosition = (event) => {
+      if (pointerLockedRef.current) return;
+      const rect = wrapper.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      pointerRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerRef.current.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
+      clampPointer();
+    };
+
+    const updateLockedPointer = (event) => {
+      if (!pointerLockedRef.current) return;
+      const rect = wrapper.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      pointerRef.current.x += (event.movementX / rect.width) * 2;
+      pointerRef.current.y -= (event.movementY / rect.height) * 2;
+      clampPointer();
+    };
+
+    const handlePointerLockChange = () => {
+      const locked = document.pointerLockElement === wrapper;
+      pointerLockedRef.current = locked;
+      setPointerLocked(locked);
+    };
+
+    const requestLock = () => {
+      if (document.pointerLockElement !== wrapper) {
+        wrapper.requestPointerLock?.();
+      }
+    };
+
+    wrapper.addEventListener('mousemove', updateFromClientPosition);
+    wrapper.addEventListener('mousedown', requestLock);
+    document.addEventListener('mousemove', updateLockedPointer);
+    document.addEventListener('pointerlockchange', handlePointerLockChange);
+
+    return () => {
+      wrapper.removeEventListener('mousemove', updateFromClientPosition);
+      wrapper.removeEventListener('mousedown', requestLock);
+      document.removeEventListener('mousemove', updateLockedPointer);
+      document.removeEventListener('pointerlockchange', handlePointerLockChange);
+      if (document.pointerLockElement === wrapper) {
+        document.exitPointerLock?.();
+      }
+    };
+  }, []);
 
   return (
-    <div className={`game-canvas-wrapper ${className}`.trim()} id="game-canvas">
+    <div
+      ref={wrapperRef}
+      className={`game-canvas-wrapper ${pointerLocked ? 'game-canvas-locked' : ''} ${className}`.trim()}
+      id="game-canvas"
+    >
       <Canvas
         camera={{ position: [0, 0, 15], fov: 60, near: 0.1, far: 500 }}
         dpr={[1, 1.25]}
@@ -576,7 +643,7 @@ const GameCanvas = ({ onReady, className = '' }) => {
         <pointLight position={[0, 0, 10]} intensity={2.0} color="#ffffff" distance={100} decay={2} />
 
         <SceneReady onReady={onReady} />
-        <MouseControls shipTargetRef={shipTarget} aimRef={aimPos} />
+        <MouseControls shipTargetRef={shipTarget} aimRef={aimPos} pointerRef={pointerRef} />
         <SpaceTunnel />
         <Ship targetRef={shipTarget} positionRef={shipPos} />
         <Crosshair3D posRef={aimPos} />

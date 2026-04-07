@@ -4,7 +4,7 @@ export const MISSION_BRIEFINGS = {
     destroy: [
       { label: 'Meteor', points: '+10' },
     ],
-    avoid: 'Avoid mines: -15 score and -1 forcefield.',
+    avoid: 'Avoid mines: -15 score and combo reset.',
   },
   2: {
     title: 'Level 2 Briefing',
@@ -12,7 +12,7 @@ export const MISSION_BRIEFINGS = {
       { label: 'Ghost Boy', points: '+20' },
       { label: 'King Boo', points: '+30' },
     ],
-    avoid: 'Avoid mines: -15 score and -1 forcefield.',
+    avoid: 'Avoid mines: -15 score and combo reset.',
   },
   3: {
     title: 'Level 3 Briefing',
@@ -20,7 +20,7 @@ export const MISSION_BRIEFINGS = {
       { label: 'Chuck', points: '+50' },
       { label: 'Red Angrybird', points: '+100' },
     ],
-    avoid: 'Avoid mines: -15 score and -1 forcefield.',
+    avoid: 'Avoid mines: -15 score and combo reset.',
   },
 };
 

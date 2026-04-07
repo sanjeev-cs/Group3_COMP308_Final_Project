@@ -8,6 +8,7 @@ import {
 import { CLAIM_ACHIEVEMENT } from '../graphql/mutations.js';
 import PageShell from '../components/layout/PageShell.jsx';
 import XPBar from '../components/XPBar.jsx';
+import { ACHIEVEMENT_META } from '../constants/achievementMeta.js';
 import { canClaimAchievement, isSupportedAchievement } from '../utils/achievementRules.js';
 import './ProfilePage.css';
 
@@ -17,7 +18,7 @@ const ProfilePage = () => {
   const { data: progressData } = useQuery(GET_MY_PROGRESS);
   const { data: levelData } = useQuery(GET_LEVEL_PROGRESS);
 
-  const allAchievements = achievementsData?.getAchievements || [];
+  const allAchievements = achievementsData?.getAchievements?.length ? achievementsData.getAchievements : ACHIEVEMENT_META;
   const progress = progressData?.getMyProgress || [];
   const levelProgress = levelData?.getLevelProgress;
   const visibleAchievements = allAchievements.filter((achievement) => isSupportedAchievement(achievement.key));
