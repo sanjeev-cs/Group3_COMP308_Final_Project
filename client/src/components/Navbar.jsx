@@ -16,7 +16,7 @@ const Navbar = () => {
     setIsProfileOpen(false);
   }, [location.pathname]);
 
-  if (location.pathname === '/game' && gameStatus === 'playing') {
+  if (location.pathname === '/game' && ['playing', 'paused'].includes(gameStatus)) {
     return null;
   }
 
