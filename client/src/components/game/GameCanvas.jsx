@@ -7,7 +7,7 @@ import HUD from './HUD.jsx';
 import FireballEffect from './FireballEffect.jsx';
 import SpaceTunnel from './SpaceTunnel.jsx';
 import { clampToBounds, getVisibleMovementBounds, hasProjectileHit } from './gameSceneMath.js';
-import { playEnemyDestroyedSound, playLaserSound, resumeGameAudio } from './gameSoundManager.js';
+import { playEnemyDestroyedSound, playLaserSound, playShipImpactSound, resumeGameAudio } from './gameSoundManager.js';
 import './GameCanvas.css';
 
 // ─── TUNNEL SETTINGS ────────────────────────────────
@@ -493,6 +493,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
       const distToShipSq = ePos.distanceToSquared(shipPos.current);
       if (distToShipSq < 4.0) {
          triggerBoom(ePos.x, ePos.y, ePos.z, '#ef4444');
+         playShipImpactSound();
          hit(Number(eId), 'mine');
          delete activeEnemies.current[eId];
       }

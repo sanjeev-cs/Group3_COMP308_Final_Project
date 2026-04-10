@@ -92,6 +92,28 @@
   font-size: 0.84rem;
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 4.8rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
 .avatar-option-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -122,6 +144,11 @@
   width: 56px;
   height: 56px;
   object-fit: contain;
+}
+
+.profile-settings-actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .profile-feedback {

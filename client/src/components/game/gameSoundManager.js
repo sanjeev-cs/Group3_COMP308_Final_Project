@@ -139,6 +139,10 @@ export const playEnemyDestroyedSound = () => {
   playBufferedSound(SOUND_FILES.explosion, { volume: 0.5, playbackRate: 1.04 });
 };
 
+export const playShipImpactSound = () => {
+  playBufferedSound(SOUND_FILES.explosion, { volume: 0.48, playbackRate: 0.92 });
+};
+
 export const playDamageSound = () => {
   playBufferedSound(SOUND_FILES.damage, { volume: 0.5, playbackRate: 1 });
 };

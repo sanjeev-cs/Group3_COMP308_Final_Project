@@ -18,4 +18,24 @@
   background: linear-gradient(180deg, #1a212d 0%, #121924 100%);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.5);
   padding: 1.1rem;
+  scrollbar-width: thin;
+  scrollbar-color: #314156 #121924;
+}
+
+.profile-quick-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-quick-modal::-webkit-scrollbar-track {
+  background: #121924;
+  border-radius: 999px;
+}
+
+.profile-quick-modal::-webkit-scrollbar-thumb {
+  background: #314156;
+  border-radius: 999px;
+}
+
+.profile-quick-modal::-webkit-scrollbar-thumb:hover {
+  background: #42536d;
 }
