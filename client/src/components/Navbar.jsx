@@ -1,13 +1,22 @@
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import useGameStore from '../store/gameStore.js';
+import ProfileQuickModal from './profile/ProfileQuickModal.jsx';
 import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const gameStatus = useGameStore((state) => state.status);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  if (location.pathname === '/game') {
+  useEffect(() => {
+    setIsProfileOpen(false);
+  }, [location.pathname]);
+
+  if (location.pathname === '/game' && gameStatus === 'playing') {
     return null;
   }
 
@@ -28,7 +37,7 @@ const Navbar = () => {
               <div className="nav-user-info">
                 <div className="nav-account-shell">
                   <span className="nav-level">Level {user.level}</span>
-                  <Link to="/profile" className="nav-identity">
+                  <button type="button" className="nav-identity" onClick={() => setIsProfileOpen(true)}>
                     <span className="nav-avatar">
                       {user.avatar && user.avatar.endsWith('.svg') ? (
                         <img src={`/avatars/${user.avatar}`} alt="avatar" className="nav-avatar-image" />
@@ -38,9 +47,8 @@ const Navbar = () => {
                     </span>
                     <span className="nav-identity-copy">
                       <span className="nav-identity-name">{user.username}</span>
-                      <span className="nav-identity-sub">Pilot Profile</span>
                     </span>
-                  </Link>
+                  </button>
                 </div>
                 <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary nav-logout-btn" id="logout-btn">
                   Log out
@@ -50,6 +58,7 @@ const Navbar = () => {
           ) : null}
         </div>
       </div>
+      <ProfileQuickModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </nav>
   );
 };

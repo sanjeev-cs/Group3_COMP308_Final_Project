@@ -83,29 +83,27 @@
 }
 
 /* Mission select */
-.mission-page {
-  padding-bottom: 2rem;
-}
-
 .mission-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  align-items: stretch;
 }
 
 .mission-item {
-  padding: 1.5rem 2rem !important;
-  display: block !important;
+  padding: 1.45rem !important;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: space-between;
   width: 100%;
-  max-width: 550px;
+  max-width: none;
   height: auto !important;
-  min-height: 0 !important;
+  min-height: 238px !important;
   flex: 0 0 auto !important;
 }
 
 .mission-item > * {
-  margin-bottom: 0.6rem !important;
+  margin-bottom: 0.8rem !important;
 }
 
 .mission-item > *:last-child {
@@ -133,12 +131,13 @@
 
 .mission-item-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.6rem;
+  min-height: 2.4rem;
 }
 .mission-item-head h2 {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.06rem;
+  font-weight: 700;
   flex: 1;
 }
 
@@ -154,6 +153,11 @@
   gap: 0.75rem;
   font-size: 0.75rem;
   color: var(--text-dim);
+}
+
+.mission-item .btn {
+  margin-top: auto;
+  align-self: flex-start;
 }
 
 .mission-locked-text { font-size: 0.78rem; color: #57534e; }
@@ -238,6 +242,10 @@
 }
 
 @media (max-width: 768px) {
+  .mission-list {
+    grid-template-columns: 1fr;
+  }
+
   .result-page {
     align-items: flex-start;
   }

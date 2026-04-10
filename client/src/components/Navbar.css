@@ -91,6 +91,11 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
 }
 
 .nav-avatar {
@@ -114,7 +119,7 @@
 
 .nav-identity-copy {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   line-height: 1.1;
 }
 
@@ -122,13 +127,6 @@
   font-size: 0.76rem;
   font-weight: 700;
   color: #f4fbff;
-}
-
-.nav-identity-sub {
-  font-size: 0.64rem;
-  color: #8e9cb0;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .nav-logout-btn {

@@ -1,0 +1,21 @@
+.profile-quick-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 5.1rem 1.5rem 1.5rem;
+  background: rgba(4, 8, 14, 0.42);
+}
+
+.profile-quick-modal {
+  width: min(560px, calc(100vw - 2rem));
+  max-height: calc(100vh - 6.5rem);
+  overflow: auto;
+  border-radius: 22px;
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, #1a212d 0%, #121924 100%);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.5);
+  padding: 1.1rem;
+}
