@@ -42,6 +42,26 @@ export const LOGIN = gql`
   }
 `;
 
+export const UPDATE_PROFILE = gql`
+  mutation UpdateProfile($input: UpdateProfileInput!) {
+    updateProfile(input: $input) {
+      id
+      username
+      avatar
+      level
+      xp
+      stardust
+      achievements
+      stats {
+        gamesPlayed
+        totalScore
+        highestCombo
+        totalAsteroidsDestroyed
+      }
+    }
+  }
+`;
+
 export const SAVE_GAME_RESULT = gql`
   mutation SaveGameResult($input: GameResultInput!) {
     saveGameResult(input: $input) {

@@ -26,15 +26,23 @@ const Navbar = () => {
               <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
               <Link to="/profile" className="nav-link">Profile</Link>
               <div className="nav-user-info">
-                <span className="nav-level">Lv {user.level}</span>
-                <span className="nav-avatar">
-                  {user.avatar && user.avatar.endsWith('.svg') ? (
-                    <img src={`/avatars/${user.avatar}`} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                  ) : (
-                    user.avatar
-                  )}
-                </span>
-                <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary" id="logout-btn">
+                <div className="nav-account-shell">
+                  <span className="nav-level">Level {user.level}</span>
+                  <Link to="/profile" className="nav-identity">
+                    <span className="nav-avatar">
+                      {user.avatar && user.avatar.endsWith('.svg') ? (
+                        <img src={`/avatars/${user.avatar}`} alt="avatar" className="nav-avatar-image" />
+                      ) : (
+                        user.avatar
+                      )}
+                    </span>
+                    <span className="nav-identity-copy">
+                      <span className="nav-identity-name">{user.username}</span>
+                      <span className="nav-identity-sub">Pilot Profile</span>
+                    </span>
+                  </Link>
+                </div>
+                <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary nav-logout-btn" id="logout-btn">
                   Log out
                 </button>
               </div>

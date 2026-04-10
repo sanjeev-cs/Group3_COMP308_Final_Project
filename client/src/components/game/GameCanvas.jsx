@@ -362,7 +362,11 @@ const GameLogic = ({ shipPos, aimPos }) => {
   const spentBulletIds = useRef(new Set());
 
   const regBullet = useCallback((id, mesh) => {
-    if (mesh) activeBullets.current[id] = mesh;
+    if (mesh) {
+      mesh.visible = true;
+      mesh.userData.spent = false;
+      activeBullets.current[id] = mesh;
+    }
     else delete activeBullets.current[id];
   }, []);
 
@@ -396,6 +400,10 @@ const GameLogic = ({ shipPos, aimPos }) => {
 
   const rmBul = useCallback(id => {
     spentBulletIds.current.add(id);
+    if (activeBullets.current[id]) {
+      activeBullets.current[id].visible = false;
+      activeBullets.current[id].userData.spent = true;
+    }
     setBullets(p => p.filter(b=>b.id!==id));
     delete activeBullets.current[id];
   }, []);
@@ -448,7 +456,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
         if (spentBulletIds.current.has(bulletId)) continue;
 
         const bMesh = activeBullets.current[bId];
-        if (!bMesh) continue;
+        if (!bMesh || bMesh.userData.spent) continue;
         if (hasProjectileHit({
           bulletPosition: bMesh.position,
           enemyPosition: ePos,
@@ -464,7 +472,11 @@ const GameLogic = ({ shipPos, aimPos }) => {
 
       if (hitBulletId !== null) {
         spentBulletIds.current.add(hitBulletId);
-        delete activeBullets.current[hitBulletId];
+        if (activeBullets.current[hitBulletId]) {
+          activeBullets.current[hitBulletId].visible = false;
+          activeBullets.current[hitBulletId].userData.spent = true;
+          delete activeBullets.current[hitBulletId];
+        }
 
         if (enemyData) {
             const hitResult = hit(Number(eId), enemyData.type);

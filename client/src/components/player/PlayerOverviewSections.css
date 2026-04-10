@@ -1,0 +1,111 @@
+.player-overview-section {
+  margin-top: 2rem;
+}
+
+.player-overview-section h2 {
+  margin-bottom: 1rem;
+}
+
+.player-overview-stats {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.player-records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.9rem;
+}
+
+.player-record-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 150px;
+  justify-content: space-between;
+}
+
+.player-record-card.muted {
+  color: var(--text-dim);
+}
+
+.player-record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.player-record-mission {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.player-record-score {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.player-record-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.player-achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.9rem;
+}
+
+.player-achievement-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  opacity: 0.52;
+  min-height: 150px;
+}
+
+.player-achievement-card.unlocked,
+.player-achievement-card.claimable {
+  opacity: 1;
+}
+
+.player-achievement-card.unlocked {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.player-achievement-card.claimable {
+  border-color: rgba(251, 191, 36, 0.38);
+}
+
+.player-achievement-icon {
+  font-size: 1.9rem;
+  flex-shrink: 0;
+}
+
+.player-achievement-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+}
+
+.player-achievement-copy h4 {
+  font-size: 0.95rem;
+}
+
+.player-achievement-copy p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.player-achievement-reward {
+  font-size: 0.68rem;
+  color: #fde68a;
+  font-weight: 700;
+}

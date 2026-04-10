@@ -1,157 +1,201 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import {
-  GET_ACHIEVEMENTS,
-  GET_MY_PROGRESS,
-  GET_LEVEL_PROGRESS,
-} from '../graphql/queries.js';
-import { CLAIM_ACHIEVEMENT } from '../graphql/mutations.js';
+import { UPDATE_PROFILE } from '../graphql/mutations.js';
 import PageShell from '../components/layout/PageShell.jsx';
 import XPBar from '../components/XPBar.jsx';
-import { ACHIEVEMENT_META } from '../constants/achievementMeta.js';
-import { canClaimAchievement, isSupportedAchievement } from '../utils/achievementRules.js';
+import { AVATAR_OPTIONS } from '../constants/avatarOptions.js';
+import { isValidPassword, PASSWORD_RULE_TEXT } from '../utils/passwordPolicy.js';
 import useLiveQuery from '../hooks/useLiveQuery.js';
+import { GET_LEVEL_PROGRESS } from '../graphql/queries.js';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
   const { user, refreshUser } = useAuth();
-  const { data: achievementsData } = useLiveQuery(GET_ACHIEVEMENTS);
-  const { data: progressData } = useLiveQuery(GET_MY_PROGRESS);
   const { data: levelData } = useLiveQuery(GET_LEVEL_PROGRESS);
-
-  const allAchievements = achievementsData?.getAchievements?.length ? achievementsData.getAchievements : ACHIEVEMENT_META;
-  const progress = progressData?.getMyProgress || [];
   const levelProgress = levelData?.getLevelProgress;
-  const visibleAchievements = allAchievements.filter((achievement) => isSupportedAchievement(achievement.key));
-  const unlockedAchievements = user?.achievements?.length || 0;
+  const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar || AVATAR_OPTIONS[0]);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState('');
 
-  const [claimAchievement] = useMutation(CLAIM_ACHIEVEMENT, {
-    onCompleted: () => refreshUser(),
-    onError: (error) => alert(error.message),
+  const avatarChanged = useMemo(
+    () => selectedAvatar !== (user?.avatar || AVATAR_OPTIONS[0]),
+    [selectedAvatar, user?.avatar],
+  );
+
+  useEffect(() => {
+    setSelectedAvatar(user?.avatar || AVATAR_OPTIONS[0]);
+  }, [user?.avatar]);
+
+  const [updateProfile, { loading }] = useMutation(UPDATE_PROFILE, {
+    onCompleted: async () => {
+      await refreshUser();
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setError('');
+      setFeedback('Profile updated.');
+    },
+    onError: (mutationError) => {
+      setFeedback('');
+      setError(mutationError.message);
+    },
   });
 
-  const missionRecords = [...progress]
-    .sort((left, right) => right.score - left.score)
-    .slice(0, 3);
+  const saveAvatar = () => {
+    setFeedback('');
+    setError('');
+    updateProfile({ variables: { input: { avatar: selectedAvatar } } });
+  };
+
+  const savePassword = () => {
+    setFeedback('');
+    setError('');
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError('Fill in all password fields.');
+      return;
+    }
+
+    if (!isValidPassword(newPassword)) {
+      setError(PASSWORD_RULE_TEXT);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('New password and confirm password must match.');
+      return;
+    }
+
+    updateProfile({
+      variables: {
+        input: {
+          currentPassword,
+          newPassword,
+        },
+      },
+    });
+  };
 
   return (
     <PageShell
-      title="Pilot Dossier"
-      subtitle="Your commander profile, mission history, and claimable achievements."
+      title="Pilot Settings"
+      subtitle="View your commander identity, change your avatar, and update your password."
       backTo="/dashboard"
       backLabel="Dashboard"
     >
       <div className="profile-page page" id="profile-page">
-        <div className="profile-header card animate-fadeIn">
-          <div className="profile-avatar-section">
-            <span className="profile-avatar">
-              {user?.avatar && user.avatar.endsWith('.svg') ? (
-                <img src={`/avatars/${user.avatar}`} alt="avatar" style={{ width: '60px', height: '60px' }} />
-              ) : (
-                user?.avatar
-              )}
-            </span>
-            <div>
-              <h2>{user?.username}</h2>
+        <div className="profile-layout">
+          <section className="card profile-summary-card">
+            <div className="profile-summary-head">
+              <span className="profile-avatar-frame">
+                <img src={`/avatars/${selectedAvatar}`} alt="selected avatar" className="profile-avatar-image" />
+              </span>
+              <div className="profile-summary-copy">
+                <span className="profile-kicker">Commander</span>
+                <h2>{user?.username}</h2>
+                <p>Account settings for your active pilot.</p>
+              </div>
             </div>
-          </div>
-          {levelProgress && (
-            <div className="profile-xp">
-              <XPBar
-                currentXP={levelProgress.currentLevelXP}
-                xpForNext={levelProgress.xpForNextLevel}
-                level={levelProgress.level}
-              />
+            <div className="profile-summary-meta">
+              <div className="profile-summary-chip">
+                <span className="profile-summary-label">Username</span>
+                <strong>{user?.username}</strong>
+              </div>
+              <div className="profile-summary-chip">
+                <span className="profile-summary-label">Level</span>
+                <strong>Lv {user?.level || 1}</strong>
+              </div>
             </div>
-          )}
-        </div>
+            {levelProgress ? (
+              <div className="profile-summary-xp">
+                <XPBar
+                  currentXP={levelProgress.currentLevelXP}
+                  xpForNext={levelProgress.xpForNextLevel}
+                  level={levelProgress.level}
+                />
+              </div>
+            ) : null}
+          </section>
 
-        <section className="profile-section">
-          <h2>Career Stats</h2>
-          <div className="stat-grid">
-            <div className="stat-item">
-              <div className="stat-value">{user?.stats?.gamesPlayed || 0}</div>
-              <div className="stat-label">Games Played</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">{user?.stats?.totalScore || 0}</div>
-              <div className="stat-label">Total Score</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">{user?.stats?.highestCombo || 0}x</div>
-              <div className="stat-label">Best Combo</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">{user?.stats?.totalAsteroidsDestroyed || 0}</div>
-              <div className="stat-label">Objects Destroyed</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">{unlockedAchievements}</div>
-              <div className="stat-label">Achievements</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">Lv.{user?.level || 1}</div>
-              <div className="stat-label">Level</div>
-            </div>
-          </div>
-        </section>
-
-        <section className="profile-section">
-          <h2>Mission Records</h2>
-          <div className="records-grid">
-            {missionRecords.length === 0 ? (
-              <div className="card record-card muted">No mission runs recorded yet. Launch a mission from the dashboard.</div>
-            ) : (
-              missionRecords.map((record) => (
-                <div className="card record-card" key={record.id}>
-                  <div className="record-header">
-                    <span className="record-mission">Mission {record.missionId}</span>
-                    <span className="record-score">{record.score}</span>
-                  </div>
-                  <div className="record-meta">
-                    <span>{record.attempts} attempts</span>
-                    <span>{record.completed ? 'Completed' : 'In Progress'}</span>
-                    <span>{record.starsEarned}/3 stars</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section className="profile-section">
-          <h2>Achievements</h2>
-          <div className="achievements-grid">
-            {visibleAchievements.map((achievement) => {
-              const unlocked = user?.achievements?.includes(achievement.key);
-              const claimable = canClaimAchievement({ key: achievement.key, user, progress });
-
-              return (
-                <div
-                  className={`card achievement-card ${unlocked ? 'unlocked' : ''} ${claimable ? 'claimable' : ''}`}
-                  key={achievement.key}
-                  id={`achievement-${achievement.key}`}
-                >
-                  <span className="achievement-icon">{unlocked ? achievement.icon : 'LOCK'}</span>
-                  <div>
-                    <h4>{achievement.name}</h4>
-                    <p>{achievement.description}</p>
-                    <span className="achievement-reward">+{achievement.xpReward} XP</span>
-                  </div>
-                  {claimable && (
+          <section className="card profile-settings-card">
+            <div className="profile-settings-grid">
+              <div className="profile-settings-block">
+                <h2>Avatar</h2>
+                <p className="profile-section-copy">Choose the pilot badge shown in the navbar and profile.</p>
+                <div className="avatar-option-grid">
+                  {AVATAR_OPTIONS.map((avatar) => (
                     <button
-                      className="btn btn-sm btn-gold"
-                      onClick={() => claimAchievement({ variables: { key: achievement.key } })}
+                      key={avatar}
+                      type="button"
+                      className={`avatar-option ${selectedAvatar === avatar ? 'avatar-option-active' : ''}`}
+                      onClick={() => setSelectedAvatar(avatar)}
                     >
-                      Claim
+                      <img src={`/avatars/${avatar}`} alt={avatar} className="avatar-option-image" />
                     </button>
-                  )}
-                  {unlocked && <span className="badge badge-easy">Unlocked</span>}
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </section>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!avatarChanged || loading}
+                  onClick={saveAvatar}
+                >
+                  Save Avatar
+                </button>
+              </div>
+
+              <div className="profile-settings-block">
+                <h2>Password</h2>
+                <p className="profile-section-copy">{PASSWORD_RULE_TEXT}</p>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="profile-current-password">Current Password</label>
+                  <input
+                    id="profile-current-password"
+                    className="form-input"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="profile-new-password">New Password</label>
+                  <input
+                    id="profile-new-password"
+                    className="form-input"
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="profile-confirm-password">Confirm New Password</label>
+                  <input
+                    id="profile-confirm-password"
+                    className="form-input"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={loading}
+                  onClick={savePassword}
+                >
+                  Update Password
+                </button>
+              </div>
+            </div>
+
+            {feedback ? <div className="profile-feedback success">{feedback}</div> : null}
+            {error ? <div className="profile-feedback error">{error}</div> : null}
+          </section>
+        </div>
       </div>
     </PageShell>
   );

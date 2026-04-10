@@ -6,6 +6,7 @@ import LeaderboardEntry from '../models/LeaderboardEntry.js';
 import Challenge from '../models/Challenge.js';
 import { ACHIEVEMENT_PRESETS, DEFAULT_ACHIEVEMENTS } from '../config/achievementPresets.js';
 import { ACTIVE_CHALLENGE_PRESET_MAP, ACTIVE_CHALLENGE_PRESETS } from '../config/challengePresets.js';
+import { AVATAR_OPTIONS } from '../config/avatarOptions.js';
 import { generateToken } from '../utils/jwt.js';
 import { assertValidPassword, buildInternalEmail, buildUsernameLookup } from '../utils/authCredentials.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -177,6 +178,37 @@ const resolvers = {
       delete userObj.passwordHash;
 
       return { token, user: { ...userObj, id: user._id.toString() } };
+    },
+
+    updateProfile: async (_, { input }, context) => {
+      const user = requireAuth(context);
+      const { avatar, currentPassword, newPassword } = input;
+      const fullUser = await User.findById(user.id);
+      if (!fullUser) throw new Error('User not found');
+
+      if (avatar !== undefined) {
+        if (!AVATAR_OPTIONS.includes(avatar)) {
+          throw new Error('Invalid avatar selection');
+        }
+        fullUser.avatar = avatar;
+      }
+
+      if (newPassword) {
+        if (!currentPassword) {
+          throw new Error('Current password is required to set a new password');
+        }
+
+        const isCurrentPasswordValid = await fullUser.comparePassword(currentPassword);
+        if (!isCurrentPasswordValid) {
+          throw new Error('Current password is incorrect');
+        }
+
+        assertValidPassword(newPassword);
+        fullUser.passwordHash = newPassword;
+      }
+
+      await fullUser.save();
+      return fullUser;
     },
 
     saveGameResult: async (_, { input }, context) => {
