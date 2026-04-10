@@ -275,7 +275,6 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
 
     if (normalizedType === 'king_boo') {
       ref.current.lookAt(state.camera.position);
-      ref.current.rotateY(Math.PI);
     }
 
     if (ref.current.position.z > MISS_Z) {
@@ -360,6 +359,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
 
   const activeBullets = useRef({});
   const activeEnemies = useRef({});
+  const spentBulletIds = useRef(new Set());
 
   const regBullet = useCallback((id, mesh) => {
     if (mesh) activeBullets.current[id] = mesh;
@@ -382,6 +382,12 @@ const GameLogic = ({ shipPos, aimPos }) => {
     return () => { window.removeEventListener('mousedown',md); window.removeEventListener('mouseup',mu); };
   }, []);
 
+  useEffect(() => {
+    if (status === 'playing') {
+      spentBulletIds.current.clear();
+    }
+  }, [status]);
+
   const triggerBoom = useCallback((x,y,z, col) => {
     const id = Date.now()+Math.random();
     setBooms(p => [...p, { id, x,y,z, color: col }]);
@@ -389,6 +395,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
   }, []);
 
   const rmBul = useCallback(id => {
+    spentBulletIds.current.add(id);
     setBullets(p => p.filter(b=>b.id!==id));
     delete activeBullets.current[id];
   }, []);
@@ -437,6 +444,9 @@ const GameLogic = ({ shipPos, aimPos }) => {
       let hitBulletId = null;
 
       for (const bId in activeBullets.current) {
+        const bulletId = Number(bId);
+        if (spentBulletIds.current.has(bulletId)) continue;
+
         const bMesh = activeBullets.current[bId];
         if (!bMesh) continue;
         if (hasProjectileHit({
@@ -447,12 +457,15 @@ const GameLogic = ({ shipPos, aimPos }) => {
           delta: d,
           enemyType: enemyData?.type ?? eMesh.userData.type,
         })) {
-          hitBulletId = bId;
+          hitBulletId = bulletId;
           break;
         }
       }
 
-      if (hitBulletId) {
+      if (hitBulletId !== null) {
+        spentBulletIds.current.add(hitBulletId);
+        delete activeBullets.current[hitBulletId];
+
         if (enemyData) {
             const hitResult = hit(Number(eId), enemyData.type);
             if (hitResult?.destroyed) {
@@ -461,7 +474,7 @@ const GameLogic = ({ shipPos, aimPos }) => {
               delete activeEnemies.current[eId];
             }
         }
-        rmBul(Number(hitBulletId));
+        rmBul(hitBulletId);
         continue;
       }
 
