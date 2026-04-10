@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext.jsx';
@@ -19,32 +20,33 @@ const CONFIGS = {
     speed: 0.85,
     spawnInterval: 0.95,
     maxActiveEnemies: 3,
-    weapon: { cooldown: 0.34, projectiles: 1, spread: 0, depthStep: 0 },
+    weapon: { cooldown: 0.34, projectiles: 1, burstInterval: 0, spread: 0, depthStep: 0 },
     pool: ['meteor', 'mine'],
   },
   2: {
     duration: 48,
     waves: 14,
-    objectsPerWave: { min: 2, max: 3 },
-    speed: 1.25,
-    spawnInterval: 0.72,
-    maxActiveEnemies: 4,
-    weapon: { cooldown: 0.26, projectiles: 2, spread: 0, depthStep: 1.15 },
+    objectsPerWave: { min: 2, max: 4 },
+    speed: 1.38,
+    spawnInterval: 0.64,
+    maxActiveEnemies: 5,
+    weapon: { cooldown: 0.34, projectiles: 2, burstInterval: 0.09, spread: 0, depthStep: 0 },
     pool: ['ghost_boy', 'king_boo', 'mine'],
   },
   3: {
     duration: 42,
     waves: 18,
-    objectsPerWave: { min: 3, max: 4 },
-    speed: 1.55,
-    spawnInterval: 0.56,
-    maxActiveEnemies: 5,
-    weapon: { cooldown: 0.2, projectiles: 2, spread: 0, depthStep: 1.25 },
+    objectsPerWave: { min: 3, max: 5 },
+    speed: 1.72,
+    spawnInterval: 0.48,
+    maxActiveEnemies: 6,
+    weapon: { cooldown: 0.28, projectiles: 2, burstInterval: 0.07, spread: 0, depthStep: 0 },
     pool: ['boss', 'chuck', 'mine'],
   },
 };
 
 const GamePage = () => {
+  const navigate = useNavigate();
   const { refreshUser } = useAuth();
   const { data } = useQuery(GET_MISSIONS);
   const missions = data?.getMissions || [];
@@ -58,6 +60,7 @@ const GamePage = () => {
   const missionId = useGameStore((state) => state.missionId);
   const startMission = useGameStore((state) => state.startMission);
   const reset = useGameStore((state) => state.reset);
+  const setStatus = useGameStore((state) => state.setStatus);
 
   const previousStatus = useRef(status);
   const previousLives = useRef(lives);
@@ -68,7 +71,26 @@ const GamePage = () => {
   useEffect(() => () => reset(), [reset]);
 
   useEffect(() => {
-    if (status !== 'playing') {
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      if (status !== 'playing') return;
+
+      event.preventDefault();
+      setStatus('paused');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setStatus, status]);
+
+  useEffect(() => {
+    if (status === 'paused') {
+      document.exitPointerLock?.();
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (status === 'idle' || status === 'completed' || status === 'failed') {
       setIsLaunching(false);
       setIsCanvasReady(false);
     }
@@ -139,7 +161,7 @@ const GamePage = () => {
     });
   }, [destroyed, lives, maxCombo, missionId, saveResult, score, status, waves]);
 
-  if (status === 'playing') {
+  if (status === 'playing' || status === 'paused') {
     return (
       <PageShell showHeader={false} className="game-shell" contentClassName="game-shell-content">
         <div className={`game-page game-active ${isCanvasReady ? 'game-active-ready' : 'game-active-loading'}`} id="game-active">
@@ -149,6 +171,37 @@ const GamePage = () => {
               <div className="game-launch-copy">
                 <span className="game-launch-kicker">Launching mission</span>
                 <span className="game-launch-label">Stabilizing jump corridor...</span>
+              </div>
+            </div>
+          )}
+          {status === 'paused' && (
+            <div className="game-pause-overlay">
+              <div className="game-pause-card">
+                <span className="game-pause-kicker">Mission paused</span>
+                <h2>Pause Menu</h2>
+                <div className="game-pause-actions">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      resumeGameAudio();
+                      setStatus('playing');
+                    }}
+                  >
+                    Resume
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      reset();
+                      setResult(null);
+                      navigate('/game');
+                    }}
+                  >
+                    Exit
+                  </button>
+                </div>
               </div>
             </div>
           )}

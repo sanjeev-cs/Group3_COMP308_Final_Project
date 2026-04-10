@@ -7,7 +7,7 @@ import HUD from './HUD.jsx';
 import FireballEffect from './FireballEffect.jsx';
 import SpaceTunnel from './SpaceTunnel.jsx';
 import { clampToBounds, getVisibleMovementBounds, hasProjectileHit } from './gameSceneMath.js';
-import { playEnemyDestroyedSound, playLaserSound, resumeGameAudio } from './gameSoundManager.js';
+import { playEnemyDestroyedSound, playLaserSound, playShipImpactSound, resumeGameAudio } from './gameSoundManager.js';
 import './GameCanvas.css';
 
 // ─── TUNNEL SETTINGS ────────────────────────────────
@@ -23,12 +23,14 @@ const MOVEMENT_BOUND = TUNNEL_RADIUS - 1.5;
 // ─── PLAYER SHIP ──────────────────────────────────
 const Ship = ({ targetRef, positionRef }) => {
   const group = useRef();
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   // We use useGLTF without caching locally for simplicity. It handles its own caching.
   const { scene } = useGLTF('/models/spaceship.glb');
   const clone = useMemo(() => scene.clone(true), [scene]);
   const vel = useRef({ x: 0, y: 0 });
 
   useFrame((state) => {
+    if (!isPlaying) return;
     if (!group.current) return;
     const g = group.current;
     const bounds = getVisibleMovementBounds(state.viewport, state.camera, SHIP_Z, MOVEMENT_BOUND);
@@ -65,7 +67,9 @@ const Ship = ({ targetRef, positionRef }) => {
 
 const Crosshair3D = ({ posRef }) => {
   const ref = useRef();
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   useFrame(() => {
+    if (!isPlaying) return;
     if (ref.current) {
       ref.current.position.copy(posRef.current);
     }
@@ -87,9 +91,9 @@ const TYPES = {
   mine:      { color: '#f59e0b', scale: 0.8 },
   ghost_boy: { color: '#ef4444', scale: 1.0 }, 
   king_boo:  { color: '#34d399', scale: 0.005 },
-  boss:      { color: '#ef4444', scale: 1.08 },
-  red:       { color: '#ef4444', scale: 1.08 },
-  chuck:     { color: '#fcd34d', scale: 3.25 },
+  boss:      { color: '#ef4444', scale: 1.22 },
+  red:       { color: '#ef4444', scale: 1.22 },
+  chuck:     { color: '#fcd34d', scale: 3.7 },
 };
 
 const getBurstOffsets = (count) => Array.from({ length: count }, (_, index) => index - (count - 1) / 2);
@@ -143,6 +147,7 @@ const BulletModel = () => {
 
 const Bullet = ({ id, x, y, z, direction, onDone, registerTarget }) => {
   const ref = useRef();
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   const travelDirection = useMemo(
     () => new THREE.Vector3(direction[0], direction[1], direction[2]).normalize(),
     [direction],
@@ -154,6 +159,7 @@ const Bullet = ({ id, x, y, z, direction, onDone, registerTarget }) => {
   }, [id, registerTarget]);
 
   useFrame((_, d) => {
+    if (!isPlaying) return;
     if (!ref.current) return;
     ref.current.position.addScaledVector(travelDirection, BULLET_SPEED * d);
     if (ref.current.position.z < SPAWN_Z) onDone(id);
@@ -223,6 +229,7 @@ const ChuckModel    = ({ scale }) => { const { scene } = useGLTF('/models/angryb
 
 const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   const ref = useRef();
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   const normalizedType = ['red', 'angrybird_red'].includes(type) ? 'boss' : type;
   const cfg = TYPES[normalizedType] || TYPES.meteor;
   const alive = useRef(true);
@@ -251,6 +258,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   }, [normalizedType, cfg.scale]);
 
   useFrame((state, d) => {
+    if (!isPlaying) return;
     if (!ref.current || !alive.current) return;
     ref.current.position.z += speed * d * 8;
     
@@ -275,7 +283,6 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
 
     if (normalizedType === 'king_boo') {
       ref.current.lookAt(state.camera.position);
-      ref.current.rotateY(Math.PI);
     }
 
     if (ref.current.position.z > MISS_Z) {
@@ -294,6 +301,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
 
 const Boom = ({ x, y, z, color }) => {
   const ref = useRef();
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   const age = useRef(0);
   const [alive, setAlive] = useState(true);
   const N = 15;
@@ -314,6 +322,7 @@ const Boom = ({ x, y, z, color }) => {
   }, [x,y,z]);
 
   useFrame((_, d) => {
+    if (!isPlaying) return;
     if (!ref.current || !alive) return;
     age.current += d;
     if (age.current > 0.6) { setAlive(false); return; }
@@ -357,12 +366,21 @@ const GameLogic = ({ shipPos, aimPos }) => {
   const firing = useRef(false);
   const stRef  = useRef(0);
   const cdRef  = useRef(0);
+  const burstShotsRemaining = useRef(0);
+  const burstIntervalRef = useRef(0);
+  const queuedDirectionRef = useRef(new THREE.Vector3(0, 0, -1));
+  const queuedOriginRef = useRef(new THREE.Vector3(0, 0, SHIP_Z));
 
   const activeBullets = useRef({});
   const activeEnemies = useRef({});
+  const spentBulletIds = useRef(new Set());
 
   const regBullet = useCallback((id, mesh) => {
-    if (mesh) activeBullets.current[id] = mesh;
+    if (mesh) {
+      mesh.visible = true;
+      mesh.userData.spent = false;
+      activeBullets.current[id] = mesh;
+    }
     else delete activeBullets.current[id];
   }, []);
 
@@ -382,6 +400,12 @@ const GameLogic = ({ shipPos, aimPos }) => {
     return () => { window.removeEventListener('mousedown',md); window.removeEventListener('mouseup',mu); };
   }, []);
 
+  useEffect(() => {
+    if (status === 'playing') {
+      spentBulletIds.current.clear();
+    }
+  }, [status]);
+
   const triggerBoom = useCallback((x,y,z, col) => {
     const id = Date.now()+Math.random();
     setBooms(p => [...p, { id, x,y,z, color: col }]);
@@ -389,6 +413,11 @@ const GameLogic = ({ shipPos, aimPos }) => {
   }, []);
 
   const rmBul = useCallback(id => {
+    spentBulletIds.current.add(id);
+    if (activeBullets.current[id]) {
+      activeBullets.current[id].visible = false;
+      activeBullets.current[id].userData.spent = true;
+    }
     setBullets(p => p.filter(b=>b.id!==id));
     delete activeBullets.current[id];
   }, []);
@@ -400,32 +429,34 @@ const GameLogic = ({ shipPos, aimPos }) => {
     const weapon = cfg.weapon || DEFAULT_WEAPON;
 
     cdRef.current -= d;
-    if (firing.current && cdRef.current <= 0) {
-      cdRef.current = weapon.cooldown;
-      const origin = shipPos.current.clone();
-      const direction = aimPos.current.clone().sub(origin).normalize();
-      const projectilePattern = createProjectilePattern(
-        direction,
-        weapon.projectiles,
-        weapon.spread,
-        weapon.depthStep || 0,
-      );
-      playLaserSound();
+    burstIntervalRef.current -= d;
 
+    if (firing.current && cdRef.current <= 0 && burstShotsRemaining.current <= 0) {
+      cdRef.current = weapon.cooldown;
+      queuedOriginRef.current.copy(shipPos.current);
+      queuedDirectionRef.current.copy(aimPos.current).sub(shipPos.current).normalize();
+      burstShotsRemaining.current = weapon.projectiles || 1;
+      burstIntervalRef.current = 0;
+    }
+
+    if (burstShotsRemaining.current > 0 && burstIntervalRef.current <= 0) {
+      const direction = queuedDirectionRef.current.clone();
+      const origin = queuedOriginRef.current.clone();
+
+      playLaserSound();
       setBullets((current) => [
         ...current,
-        ...projectilePattern.map((projectile, index) => {
-          const spawnPosition = origin.clone().addScaledVector(direction, -projectile.depthOffset);
-
-          return {
-            id: Date.now() + Math.random() + index,
-            x: spawnPosition.x,
-            y: spawnPosition.y,
-            z: spawnPosition.z,
-            direction: [projectile.direction.x, projectile.direction.y, projectile.direction.z],
-          };
-        }),
+        {
+          id: Date.now() + Math.random(),
+          x: origin.x,
+          y: origin.y,
+          z: origin.z,
+          direction: [direction.x, direction.y, direction.z],
+        },
       ]);
+
+      burstShotsRemaining.current -= 1;
+      burstIntervalRef.current = burstShotsRemaining.current > 0 ? (weapon.burstInterval || 0.08) : 0;
     }
 
     for (const eId in activeEnemies.current) {
@@ -437,8 +468,11 @@ const GameLogic = ({ shipPos, aimPos }) => {
       let hitBulletId = null;
 
       for (const bId in activeBullets.current) {
+        const bulletId = Number(bId);
+        if (spentBulletIds.current.has(bulletId)) continue;
+
         const bMesh = activeBullets.current[bId];
-        if (!bMesh) continue;
+        if (!bMesh || bMesh.userData.spent) continue;
         if (hasProjectileHit({
           bulletPosition: bMesh.position,
           enemyPosition: ePos,
@@ -447,12 +481,19 @@ const GameLogic = ({ shipPos, aimPos }) => {
           delta: d,
           enemyType: enemyData?.type ?? eMesh.userData.type,
         })) {
-          hitBulletId = bId;
+          hitBulletId = bulletId;
           break;
         }
       }
 
-      if (hitBulletId) {
+      if (hitBulletId !== null) {
+        spentBulletIds.current.add(hitBulletId);
+        if (activeBullets.current[hitBulletId]) {
+          activeBullets.current[hitBulletId].visible = false;
+          activeBullets.current[hitBulletId].userData.spent = true;
+          delete activeBullets.current[hitBulletId];
+        }
+
         if (enemyData) {
             const hitResult = hit(Number(eId), enemyData.type);
             if (hitResult?.destroyed) {
@@ -461,14 +502,15 @@ const GameLogic = ({ shipPos, aimPos }) => {
               delete activeEnemies.current[eId];
             }
         }
-        rmBul(Number(hitBulletId));
+        rmBul(hitBulletId);
         continue;
       }
 
       const distToShipSq = ePos.distanceToSquared(shipPos.current);
       if (distToShipSq < 4.0) {
          triggerBoom(ePos.x, ePos.y, ePos.z, '#ef4444');
-         hit(Number(eId), 'mine');
+         playShipImpactSound();
+         miss(Number(eId), enemyData?.type ?? eMesh.userData.type);
          delete activeEnemies.current[eId];
       }
     }
@@ -527,7 +569,9 @@ const GameLogic = ({ shipPos, aimPos }) => {
 
 // ─── MOUSE LISTENER ───────────────────────────────
 const MouseControls = ({ shipTargetRef, aimRef, pointerRef }) => {
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   useFrame(({ mouse, camera, viewport }) => {
+    if (!isPlaying) return;
     const shipBounds = getVisibleMovementBounds(viewport, camera, SHIP_Z, MOVEMENT_BOUND);
     const aimBounds = getVisibleMovementBounds(viewport, camera, CROSSHAIR_Z, TUNNEL_RADIUS - 0.8, { x: 0.6, y: 0.6 });
     const pointer = pointerRef.current || mouse;

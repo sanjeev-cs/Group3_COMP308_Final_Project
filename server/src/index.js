@@ -15,18 +15,15 @@ import resolvers from './graphql/resolvers.js';
 import { getAuthContext } from './middleware/auth.js';
 
 const PORT = process.env.PORT || 4000;
+const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
+const SUBSCRIPTIONS_URL = SERVER_URL.replace(/^http/i, 'ws');
 
-// Connect to MongoDB
 await connectDB();
 
-// Create Express app and HTTP server
 const app = express();
 const httpServer = http.createServer(app);
-
-// Build executable schema for both HTTP and WS
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-// Set up WebSocket server for GraphQL subscriptions
 const wsServer = new WebSocketServer({
   server: httpServer,
   path: '/graphql',
@@ -34,13 +31,10 @@ const wsServer = new WebSocketServer({
 
 const serverCleanup = useServer({ schema }, wsServer);
 
-// Initialize Apollo Server
 const server = new ApolloServer({
   schema,
   plugins: [
-    // Graceful shutdown for HTTP
     ApolloServerPluginDrainHttpServer({ httpServer }),
-    // Graceful shutdown for WebSocket
     {
       async serverWillStart() {
         return {
@@ -55,30 +49,27 @@ const server = new ApolloServer({
 
 await server.start();
 
-// Apply middleware
 app.use(
   '/graphql',
   cors({
     origin: [
       process.env.CLIENT_URL,
       'http://localhost:5173',
-      'https://group3-comp308-final-project-1.onrender.com'
+      'https://group3-comp308-final-project-1.onrender.com',
     ].filter(Boolean),
     credentials: true,
   }),
   express.json(),
   expressMiddleware(server, {
     context: getAuthContext,
-  })
+  }),
 );
 
-// Health check endpoint
 app.get('/health', (_, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Start server
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Server ready at ${process.env.CLIENT_URL}`);
-  console.log(`🔌 Subscriptions ready at ${process.env.CLIENT_URL.replace('http', 'ws')}/graphql`);
+  console.log(`Server ready at ${SERVER_URL}/graphql`);
+  console.log(`Subscriptions ready at ${SUBSCRIPTIONS_URL}/graphql`);
 });

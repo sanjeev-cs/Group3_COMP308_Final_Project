@@ -2,69 +2,78 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { useApolloClient } from '@apollo/client';
 import { GET_ME } from '../graphql/queries.js';
 import useGameStore from '../store/gameStore.js';
+import useLiveQuery from '../hooks/useLiveQuery.js';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [authLoading, setAuthLoading] = useState(() => Boolean(localStorage.getItem('token')));
   const client = useApolloClient();
+  const {
+    data,
+    error,
+    refetch,
+  } = useLiveQuery(GET_ME, {
+    skip: !token,
+  });
 
-  // Load user from token on mount
   useEffect(() => {
-    const loadUser = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+    if (!token) {
+      setUser(null);
+      setAuthLoading(false);
+      return;
+    }
 
-      try {
-        const { data } = await client.query({
-          query: GET_ME,
-          fetchPolicy: 'network-only',
-        });
-        if (data?.me) {
-          setUser(data.me);
-        } else {
-          localStorage.removeItem('token');
-        }
-      } catch {
-        localStorage.removeItem('token');
-      }
-      setLoading(false);
-    };
+    if (data?.me) {
+      setUser(data.me);
+      setAuthLoading(false);
+      return;
+    }
 
-    loadUser();
-  }, [client]);
+    if (error) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      setAuthLoading(false);
+    }
+  }, [data, error, token]);
 
-  const login = useCallback((token, userData) => {
-    localStorage.setItem('token', token);
+  const login = useCallback((nextToken, userData) => {
+    localStorage.setItem('token', nextToken);
+    setToken(nextToken);
     setUser(userData);
+    setAuthLoading(false);
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
+    setToken(null);
     setUser(null);
-    // Reset game state so it doesn't persist across sessions
+    setAuthLoading(false);
     useGameStore.getState().reset();
     client.resetStore();
   }, [client]);
 
   const refreshUser = useCallback(async () => {
+    if (!token) return;
+
     try {
-      const { data } = await client.query({
-        query: GET_ME,
-        fetchPolicy: 'network-only',
-      });
-      if (data?.me) setUser(data.me);
+      const { data: refreshedData } = await refetch();
+      if (refreshedData?.me) {
+        setUser(refreshedData.me);
+      }
     } catch {
-      // Silently fail — user state remains unchanged
+      if (!localStorage.getItem('token')) {
+        setToken(null);
+        setUser(null);
+      }
     }
-  }, [client]);
+  }, [refetch, token]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading: authLoading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

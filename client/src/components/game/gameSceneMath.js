@@ -4,7 +4,7 @@ const HIT_RADII = {
   meteor: 2.3,
   mine: 1.6,
   ghost_boy: 2.25,
-  king_boo: 2.15,
+  king_boo: 2.8,
   boss: 2.8,
   chuck: 1.9,
 };

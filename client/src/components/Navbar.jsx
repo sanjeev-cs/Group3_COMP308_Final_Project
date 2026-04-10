@@ -1,13 +1,22 @@
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import useGameStore from '../store/gameStore.js';
+import ProfileQuickModal from './profile/ProfileQuickModal.jsx';
 import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const gameStatus = useGameStore((state) => state.status);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  if (location.pathname === '/game') {
+  useEffect(() => {
+    setIsProfileOpen(false);
+  }, [location.pathname]);
+
+  if (location.pathname === '/game' && ['playing', 'paused'].includes(gameStatus)) {
     return null;
   }
 
@@ -24,17 +33,18 @@ const Navbar = () => {
               <Link to="/game" className="nav-link">Play</Link>
               <Link to="/dashboard" className="nav-link">Dashboard</Link>
               <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
-              <Link to="/profile" className="nav-link">Profile</Link>
               <div className="nav-user-info">
-                <span className="nav-level">Lv {user.level}</span>
-                <span className="nav-avatar">
-                  {user.avatar && user.avatar.endsWith('.svg') ? (
-                    <img src={`/avatars/${user.avatar}`} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                  ) : (
-                    user.avatar
-                  )}
-                </span>
-                <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary" id="logout-btn">
+                <button type="button" className="nav-account-shell" onClick={() => setIsProfileOpen(true)}>
+                  <span className="nav-level">Level {user.level}</span>
+                  <span className="nav-avatar">
+                    {user.avatar && user.avatar.endsWith('.svg') ? (
+                      <img src={`/avatars/${user.avatar}`} alt="avatar" className="nav-avatar-image" />
+                    ) : (
+                      user.avatar
+                    )}
+                  </span>
+                </button>
+                <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary nav-logout-btn" id="logout-btn">
                   Log out
                 </button>
               </div>
@@ -42,6 +52,7 @@ const Navbar = () => {
           ) : null}
         </div>
       </div>
+      <ProfileQuickModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </nav>
   );
 };

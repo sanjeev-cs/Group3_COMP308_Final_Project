@@ -117,6 +117,12 @@ const typeDefs = `#graphql
     completed: Boolean!
   }
 
+  input UpdateProfileInput {
+    avatar: String
+    currentPassword: String
+    newPassword: String
+  }
+
   # ─── Queries ─────────────────────────────────────────────
 
   type Query {
@@ -136,6 +142,7 @@ const typeDefs = `#graphql
   type Mutation {
     register(input: RegisterInput!): AuthPayload!
     login(username: String!, password: String!): AuthPayload!
+    updateProfile(input: UpdateProfileInput!): User!
     saveGameResult(input: GameResultInput!): GameProgress!
     purchasePowerUp(powerUpId: String!): User!
     claimAchievement(key: String!): User!

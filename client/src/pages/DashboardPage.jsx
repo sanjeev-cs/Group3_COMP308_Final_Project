@@ -1,20 +1,22 @@
-import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { GET_MY_PROGRESS, GET_LEVEL_PROGRESS } from '../graphql/queries.js';
 import PageShell from '../components/layout/PageShell.jsx';
 import XPBar from '../components/XPBar.jsx';
+import PlayerOverviewSections from '../components/player/PlayerOverviewSections.jsx';
 import { MISSION_ORDER, getMissionMeta } from '../constants/missionMeta.js';
+import { GET_ACHIEVEMENTS } from '../graphql/queries.js';
+import useLiveQuery from '../hooks/useLiveQuery.js';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
-  const { user } = useAuth();
-  const { data: progressData } = useQuery(GET_MY_PROGRESS);
-  const { data: levelData } = useQuery(GET_LEVEL_PROGRESS);
+  const { user, refreshUser } = useAuth();
+  const { data: progressData } = useLiveQuery(GET_MY_PROGRESS);
+  const { data: levelData } = useLiveQuery(GET_LEVEL_PROGRESS);
+  const { data: achievementsData } = useLiveQuery(GET_ACHIEVEMENTS);
 
   const progress = progressData?.getMyProgress || [];
   const levelProgress = levelData?.getLevelProgress;
-  const clearedMissions = progress.filter((entry) => entry.completed).length;
   const missionCards = MISSION_ORDER.map((missionId) => {
     const mission = getMissionMeta(missionId);
     return {
@@ -28,22 +30,12 @@ const DashboardPage = () => {
   return (
     <PageShell
       title="Command Deck"
-      subtitle="Track your level, active challenges, and mission performance."
+      subtitle="Track your commander progress, mission records, and achievements."
       backTo="/"
       backLabel="Home"
       action={<Link to="/game" className="btn btn-primary btn-lg" id="dash-play-btn">Launch Mission</Link>}
     >
       <div className="dashboard-page page" id="dashboard-page">
-        <div className="dashboard-header animate-fadeIn card">
-          <div className="welcome-section">
-            <span className="welcome-avatar">{user?.avatar}</span>
-            <div>
-              <h2>Welcome, {user?.username}!</h2>
-              <p className="welcome-sub">Ready for another mission, Commander?</p>
-            </div>
-          </div>
-        </div>
-
         {levelProgress && (
           <div className="dashboard-xp animate-fadeIn">
             <XPBar
@@ -54,24 +46,12 @@ const DashboardPage = () => {
           </div>
         )}
 
-        <div className="stat-grid animate-fadeIn">
-          <div className="stat-item">
-            <div className="stat-value">{user?.stats?.gamesPlayed || 0}</div>
-            <div className="stat-label">Games Played</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{user?.stats?.totalScore || 0}</div>
-            <div className="stat-label">Total Score</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{user?.stats?.highestCombo || 0}x</div>
-            <div className="stat-label">Best Combo</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{clearedMissions}</div>
-            <div className="stat-label">Missions Cleared</div>
-          </div>
-        </div>
+        <PlayerOverviewSections
+          user={user}
+          progress={progress}
+          achievementsData={achievementsData}
+          onRefreshUser={refreshUser}
+        />
 
         <section className="dashboard-section">
           <h2>Mission Progress</h2>

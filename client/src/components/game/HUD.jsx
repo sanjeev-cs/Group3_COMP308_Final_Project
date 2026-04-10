@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import useGameStore from '../../store/gameStore.js';
-import { getMissionBriefing } from './missionBriefings.js';
 import './HUD.css';
 
 const HUD = () => {
@@ -10,11 +9,8 @@ const HUD = () => {
   const time = useGameStore((state) => state.timeRemaining);
   const status = useGameStore((state) => state.status);
   const destroyed = useGameStore((state) => state.objectsDestroyed);
-  const missionId = useGameStore((state) => state.missionId);
-  const setStatus = useGameStore((state) => state.setStatus);
 
   const [popups, setPopups] = useState([]);
-  const [showBriefing, setShowBriefing] = useState(true);
   const previousScore = useRef(0);
 
   useEffect(() => {
@@ -31,41 +27,13 @@ const HUD = () => {
     previousScore.current = score;
   }, [score, status]);
 
-  useEffect(() => {
-    if (status !== 'playing') {
-      setShowBriefing(false);
-      return undefined;
-    }
-
-    setShowBriefing(true);
-    const timeout = window.setTimeout(() => setShowBriefing(false), 6500);
-    return () => window.clearTimeout(timeout);
-  }, [missionId, status]);
-
   if (status !== 'playing') return null;
 
   const lowTime = time <= 10;
   const multiplier = 1 + Math.floor(combo / 5) * 0.5;
-  const briefing = getMissionBriefing(missionId);
 
   return (
     <div className="hud" id="game-hud">
-      {showBriefing && briefing && (
-        <div className="hud-briefing hud-panel">
-          <div className="hud-briefing-kicker">{briefing.title}</div>
-          <div className="hud-briefing-heading">Destroy for points</div>
-          <div className="hud-briefing-targets">
-            {briefing.destroy.map((target) => (
-              <div key={target.label} className="hud-briefing-target">
-                <span>{target.label}</span>
-                <strong>{target.points}</strong>
-              </div>
-            ))}
-          </div>
-          <div className="hud-briefing-avoid">{briefing.avoid}</div>
-        </div>
-      )}
-
       <div className="hud-score hud-panel">
         <div className="hud-score-num">{score}</div>
         <div className="hud-score-label">{destroyed} destroyed</div>
@@ -101,10 +69,6 @@ const HUD = () => {
       </div>
 
       <div className="hud-hint">Move mouse to aim, ship trails behind, hold click to fire</div>
-
-      <button className="hud-abort-btn" onClick={() => setStatus('failed')}>
-        Abort Mission
-      </button>
     </div>
   );
 };
