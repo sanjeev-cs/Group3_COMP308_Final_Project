@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import useGameStore from '../../store/gameStore.js';
 
 const VISUAL_RADIUS = 24;
 const VISUAL_LENGTH = 360;
@@ -97,8 +98,10 @@ const buildStreakData = () =>
 const TunnelWall = () => {
   const tunnelTexture = useMemo(createTunnelTexture, []);
   const shellRef = useRef(null);
+  const isPlaying = useGameStore((state) => state.status === 'playing');
 
   useFrame((_, delta) => {
+    if (!isPlaying) return;
     const material = shellRef.current?.material;
     if (!material?.map) {
       return;
@@ -125,8 +128,10 @@ const TunnelWall = () => {
 const TunnelRings = () => {
   const ringRefs = useRef([]);
   const ringData = useMemo(buildRingData, []);
+  const isPlaying = useGameStore((state) => state.status === 'playing');
 
   useFrame((_, delta) => {
+    if (!isPlaying) return;
     ringRefs.current.forEach((ringMesh, index) => {
       if (!ringMesh) {
         return;
@@ -170,8 +175,10 @@ const TunnelStreaks = () => {
   const streakMeshRef = useRef(null);
   const streakData = useMemo(buildStreakData, []);
   const helper = useMemo(() => new THREE.Object3D(), []);
+  const isPlaying = useGameStore((state) => state.status === 'playing');
 
   useFrame((_, delta) => {
+    if (!isPlaying) return;
     if (!streakMeshRef.current) {
       return;
     }
