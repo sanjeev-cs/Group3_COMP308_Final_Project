@@ -1,17 +1,14 @@
-import { useQuery } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { GET_LEADERBOARD } from '../graphql/queries.js';
 import LeaderboardTable from '../components/LeaderboardTable.jsx';
 import PageShell from '../components/layout/PageShell.jsx';
+import useLiveQuery from '../hooks/useLiveQuery.js';
 import './LeaderboardPage.css';
 
 const LeaderboardPage = () => {
   const { user } = useAuth();
-  const { data, loading } = useQuery(GET_LEADERBOARD, {
+  const { data, loading } = useLiveQuery(GET_LEADERBOARD, {
     variables: { limit: 20 },
-    pollInterval: 5000,
-    fetchPolicy: 'cache-and-network',
-    nextFetchPolicy: 'cache-first',
   });
 
   const entries = data?.getLeaderboard || [];

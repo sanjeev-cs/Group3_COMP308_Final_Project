@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import {
   GET_ACHIEVEMENTS,
@@ -10,13 +10,14 @@ import PageShell from '../components/layout/PageShell.jsx';
 import XPBar from '../components/XPBar.jsx';
 import { ACHIEVEMENT_META } from '../constants/achievementMeta.js';
 import { canClaimAchievement, isSupportedAchievement } from '../utils/achievementRules.js';
+import useLiveQuery from '../hooks/useLiveQuery.js';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
   const { user, refreshUser } = useAuth();
-  const { data: achievementsData } = useQuery(GET_ACHIEVEMENTS);
-  const { data: progressData } = useQuery(GET_MY_PROGRESS);
-  const { data: levelData } = useQuery(GET_LEVEL_PROGRESS);
+  const { data: achievementsData } = useLiveQuery(GET_ACHIEVEMENTS);
+  const { data: progressData } = useLiveQuery(GET_MY_PROGRESS);
+  const { data: levelData } = useLiveQuery(GET_LEVEL_PROGRESS);
 
   const allAchievements = achievementsData?.getAchievements?.length ? achievementsData.getAchievements : ACHIEVEMENT_META;
   const progress = progressData?.getMyProgress || [];

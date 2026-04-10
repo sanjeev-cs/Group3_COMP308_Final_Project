@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) {
+  if (loading && !user) {
     return (
       <div className="spinner-container">
         <div className="spinner" />

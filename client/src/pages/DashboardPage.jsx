@@ -1,16 +1,16 @@
-import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { GET_MY_PROGRESS, GET_LEVEL_PROGRESS } from '../graphql/queries.js';
 import PageShell from '../components/layout/PageShell.jsx';
 import XPBar from '../components/XPBar.jsx';
 import { MISSION_ORDER, getMissionMeta } from '../constants/missionMeta.js';
+import useLiveQuery from '../hooks/useLiveQuery.js';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const { data: progressData } = useQuery(GET_MY_PROGRESS);
-  const { data: levelData } = useQuery(GET_LEVEL_PROGRESS);
+  const { data: progressData } = useLiveQuery(GET_MY_PROGRESS);
+  const { data: levelData } = useLiveQuery(GET_LEVEL_PROGRESS);
 
   const progress = progressData?.getMyProgress || [];
   const levelProgress = levelData?.getLevelProgress;
@@ -28,22 +28,12 @@ const DashboardPage = () => {
   return (
     <PageShell
       title="Command Deck"
-      subtitle="Track your level, active challenges, and mission performance."
+      subtitle="Track your level and mission performance."
       backTo="/"
       backLabel="Home"
       action={<Link to="/game" className="btn btn-primary btn-lg" id="dash-play-btn">Launch Mission</Link>}
     >
       <div className="dashboard-page page" id="dashboard-page">
-        <div className="dashboard-header animate-fadeIn card">
-          <div className="welcome-section">
-            <span className="welcome-avatar">{user?.avatar}</span>
-            <div>
-              <h2>Welcome, {user?.username}!</h2>
-              <p className="welcome-sub">Ready for another mission, Commander?</p>
-            </div>
-          </div>
-        </div>
-
         {levelProgress && (
           <div className="dashboard-xp animate-fadeIn">
             <XPBar
