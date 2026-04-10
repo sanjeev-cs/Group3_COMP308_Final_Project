@@ -76,6 +76,15 @@
   border-radius: 999px;
   background: #121a26;
   border: 1px solid #273246;
+  cursor: pointer;
+  color: inherit;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.nav-account-shell:hover {
+  border-color: #314156;
+  background: #16202b;
+  transform: translateY(-1px);
 }
 
 .nav-level {
@@ -85,17 +94,6 @@
   padding: 0.26rem 0.62rem;
   border-radius: 999px;
   border: 1px solid #314156;
-}
-
-.nav-identity {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  color: inherit;
 }
 
 .nav-avatar {
@@ -115,18 +113,6 @@
   width: 28px;
   height: 28px;
   object-fit: contain;
-}
-
-.nav-identity-copy {
-  display: flex;
-  align-items: center;
-  line-height: 1.1;
-}
-
-.nav-identity-name {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: #f4fbff;
 }
 
 .nav-logout-btn {

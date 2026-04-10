@@ -77,7 +77,6 @@
 }
 
 .profile-settings-block {
-  min-height: 100%;
   padding: 1.1rem;
   border-radius: 18px;
   border: 1px solid var(--line-soft);
@@ -147,6 +146,15 @@
 .profile-settings-panel-compact .profile-settings-avatar-frame {
   width: 64px;
   height: 64px;
+}
+
+.profile-settings-panel-compact .profile-settings-grid {
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+.profile-settings-panel-compact .profile-settings-block {
+  min-height: 0;
 }
 
 .profile-settings-panel-compact .profile-settings-avatar-image {

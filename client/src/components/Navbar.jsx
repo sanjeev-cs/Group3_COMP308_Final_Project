@@ -33,23 +33,17 @@ const Navbar = () => {
               <Link to="/game" className="nav-link">Play</Link>
               <Link to="/dashboard" className="nav-link">Dashboard</Link>
               <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
-              <Link to="/profile" className="nav-link">Profile</Link>
               <div className="nav-user-info">
-                <div className="nav-account-shell">
+                <button type="button" className="nav-account-shell" onClick={() => setIsProfileOpen(true)}>
                   <span className="nav-level">Level {user.level}</span>
-                  <button type="button" className="nav-identity" onClick={() => setIsProfileOpen(true)}>
-                    <span className="nav-avatar">
-                      {user.avatar && user.avatar.endsWith('.svg') ? (
-                        <img src={`/avatars/${user.avatar}`} alt="avatar" className="nav-avatar-image" />
-                      ) : (
-                        user.avatar
-                      )}
-                    </span>
-                    <span className="nav-identity-copy">
-                      <span className="nav-identity-name">{user.username}</span>
-                    </span>
-                  </button>
-                </div>
+                  <span className="nav-avatar">
+                    {user.avatar && user.avatar.endsWith('.svg') ? (
+                      <img src={`/avatars/${user.avatar}`} alt="avatar" className="nav-avatar-image" />
+                    ) : (
+                      user.avatar
+                    )}
+                  </span>
+                </button>
                 <button onClick={() => { logout(); navigate('/'); }} className="btn btn-sm btn-secondary nav-logout-btn" id="logout-btn">
                   Log out
                 </button>
