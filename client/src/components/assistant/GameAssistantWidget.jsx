@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ASK_GAME_ASSISTANT } from '../../graphql/mutations.js';
+import useDocumentScrollLock from '../../hooks/useDocumentScrollLock.js';
 import useGameStore from '../../store/gameStore.js';
 import { ASSISTANT_STARTER_PROMPTS, shouldShowGameAssistant } from './assistantConfig.js';
 import './GameAssistantWidget.css';
@@ -30,6 +31,38 @@ const buildMessage = (role, content, suggestedLinks = []) => ({
   suggestedLinks,
 });
 
+const ClearIcon = () => (
+  <svg viewBox="0 0 20 20" aria-hidden="true">
+    <path
+      d="M4.5 5.5h11M7.5 5.5V4.4c0-.5.4-.9.9-.9h3.2c.5 0 .9.4.9.9v1.1M8.1 8.3v5.3M11.9 8.3v5.3M6.5 5.5l.6 9.2c0 .7.6 1.3 1.3 1.3h3.2c.7 0 1.3-.6 1.3-1.3l.6-9.2"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.6"
+    />
+  </svg>
+);
+
+const MinimizeIcon = () => (
+  <svg viewBox="0 0 20 20" aria-hidden="true">
+    <path
+      d="M5 10h10"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+const GroqIcon = () => (
+  <svg viewBox="0 0 209.604012 304.704012" aria-hidden="true">
+    <path d="M105.304012.00401184C47.7040118-.49598816.50401184 45.8040118.00401184 103.404012c-.5 57.6 45.79999996 104.8 103.40000016 105.3h36.2v-39.1h-34.3c-36.0000002.4-65.6000002-28.4-66.0000002-64.5-.4-36.1000002 28.4-65.6000002 64.5000002-66.0000002h1.5c36 0 65.2 29.2 65.4 65.2000002v96.1c0 35.7-29.1 64.8-64.7 65.2-17.1000002-.1-33.4000002-7-45.4000002-19.1l-27.7 27.7c19.2 19.3 45.2 30.3 72.4000002 30.5h1.4c56.9-.8 102.6-47 102.9-103.9v-99.1c-1.4-56.5000002-47.7-101.60000016-104.3-101.70000016Z" />
+  </svg>
+);
+
 const GameAssistantWidget = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -41,6 +74,8 @@ const GameAssistantWidget = () => {
   const [isSending, setIsSending] = useState(false);
   const messagesRef = useRef(null);
   const [askAssistant] = useMutation(ASK_GAME_ASSISTANT);
+
+  useDocumentScrollLock(visible && isOpen);
 
   useEffect(() => {
     if (!visible) {
@@ -123,8 +158,10 @@ const GameAssistantWidget = () => {
                 type="button"
                 className="game-assistant-header-btn"
                 onClick={() => setMessages([WELCOME_MESSAGE])}
+                aria-label="Clear assistant messages"
+                title="Clear"
               >
-                Clear
+                <ClearIcon />
               </button>
               <button
                 type="button"
@@ -133,7 +170,7 @@ const GameAssistantWidget = () => {
                 aria-label="Minimize game help"
                 title="Minimize"
               >
-                -
+                <MinimizeIcon />
               </button>
             </div>
           </div>
@@ -208,9 +245,11 @@ const GameAssistantWidget = () => {
         className="game-assistant-launcher"
         onClick={() => setIsOpen((current) => !current)}
         aria-label={isOpen ? 'Close game help' : 'Open game help'}
-        title="AI help"
+        title="Groq help"
       >
-        AI
+        <span className="game-assistant-launcher-logo" aria-hidden="true">
+          <GroqIcon />
+        </span>
       </button>
     </div>
   );
