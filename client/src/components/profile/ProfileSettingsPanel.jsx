@@ -6,6 +6,19 @@ import { AVATAR_OPTIONS } from '../../constants/avatarOptions.js';
 import { isValidPassword, PASSWORD_RULE_TEXT } from '../../utils/passwordPolicy.js';
 import './ProfileSettingsPanel.css';
 
+const CloseIcon = () => (
+  <svg viewBox="0 0 20 20" aria-hidden="true">
+    <path
+      d="M6 6l8 8M14 6l-8 8"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
 const ProfileSettingsPanel = ({ compact = false, onClose = null }) => {
   const { user, refreshUser } = useAuth();
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar || AVATAR_OPTIONS[0]);
@@ -110,8 +123,14 @@ const ProfileSettingsPanel = ({ compact = false, onClose = null }) => {
           </div>
         </div>
         {onClose ? (
-          <button type="button" className="profile-settings-close" onClick={onClose}>
-            Close
+          <button
+            type="button"
+            className="profile-settings-close"
+            onClick={onClose}
+            aria-label="Close profile settings"
+            title="Close"
+          >
+            <CloseIcon />
           </button>
         ) : null}
       </div>

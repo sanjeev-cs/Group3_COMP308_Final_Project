@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
+import useDocumentScrollLock from '../../hooks/useDocumentScrollLock.js';
 import ProfileSettingsPanel from './ProfileSettingsPanel.jsx';
 import './ProfileQuickModal.css';
 
 const ProfileQuickModal = ({ open, onClose }) => {
+  useDocumentScrollLock(open);
+
   useEffect(() => {
     if (!open) return undefined;
 

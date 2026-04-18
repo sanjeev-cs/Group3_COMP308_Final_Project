@@ -4,8 +4,16 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
+const defaultHttpUrl = import.meta.env.DEV
+  ? '/graphql'
+  : 'https://group3-comp308-final-project-backend.onrender.com/graphql';
+
+const defaultWsUrl = import.meta.env.DEV
+  ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/graphql`
+  : 'wss://group3-comp308-final-project-backend.onrender.com/graphql';
+
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_GRAPHQL_HTTP_URL || 'https://group3-comp308-final-project-backend.onrender.com/graphql',
+  uri: import.meta.env.VITE_GRAPHQL_HTTP_URL || defaultHttpUrl,
 });
 
 // Inject JWT into every request
@@ -22,7 +30,7 @@ const authLink = setContext((_, { headers }) => {
 // WebSocket link for subscriptions
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: import.meta.env.VITE_GRAPHQL_WS_URL || 'wss://group3-comp308-final-project-backend.onrender.com/graphql',
+    url: import.meta.env.VITE_GRAPHQL_WS_URL || defaultWsUrl,
   })
 );
 
