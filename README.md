@@ -1,80 +1,77 @@
-# Stellar Smash 🚀 
+# Stellar Smash
 
-**Stellar Smash** is a high-fidelity 3D Hyper-Tunnel rail-shooter built with the MERN stack, GraphQL, and modern web graphics. You race down a cosmic procedural tunnel, defending against bizarre and dangerous entities!
+Stellar Smash is a high-fidelity 3D space rail-shooter game built using modern web technologies. Players navigate through a dynamic, hyper-tunnel space environment, battling enemies like Ghost Boy, King Boo, and Chuck amidst nebulae and procedural planets.
 
-## 🌟 Tech Stack
+## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend UI** | React 18 (Vite), Zustand, React Router v6 |
-| **3D Engine & Graphics** | Three.js via `@react-three/fiber` & `@react-three/drei` |
-| **API** | GraphQL (Apollo Server 4 + Apollo Client) & Express.js |
-| **Database** | MongoDB + Mongoose |
-| **Real-time** | GraphQL Subscriptions (WebSockets via `graphql-ws`) for Live Leaderboards |
-| **Authentication** | JWT (jsonwebtoken + bcryptjs) |
+**Frontend:**
+- **React 18** (built with Vite)
+- **Three.js** & **React Three Fiber** (`@react-three/fiber`) for 3D rendering
+- **React Three Drei** for 3D abstractions and helpers
+- **Postprocessing** (`@react-three/postprocessing`) for high-fidelity visual effects like Bloom
+- **Zustand** for lightweight state management
+- **GraphQL** & **Apollo Client** for data fetching
+- **React Router DOM** for routing
 
----
+**Backend:**
+- **Node.js** & **Express.js**
+- **Apollo Server** & **GraphQL** (with real-time Subscription support via `graphql-ws`)
+- **MongoDB** & **Mongoose** for data persistence
+- **JWT** (`jsonwebtoken`) & **bcryptjs** for secure authentication
 
-## 🛠️ Local Setup Instructions
+## Local Setup
 
-**1. Prerequisites**
-- Node.js 18+
-- MongoDB (running locally on port 27017 or a Mongo Atlas URI)
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- MongoDB (local instance or a cloud MongoDB Atlas cluster)
 
-**2. Backend Setup (`/server`)**
-```bash
-cd server
-npm install
-```
-Create a `.env` file from the example:
-```env
-PORT=4000
-MONGODB_URI=mongodb://localhost:27017/stellar-smash
-JWT_SECRET=super_secret_jwt_key
-CLIENT_URL=http://localhost:5173
-```
-Seed the database with initial variables and run the development server:
-```bash
-npm run seed
-npm run dev
-```
+### 1. Backend Setup
+1. Open a terminal and navigate to the backend directory:
+   ```bash
+   cd server
+   ```
+2. Install the required dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in the `server` directory and configure the environment variables:
+   ```env
+   PORT=4000
+   MONGODB_URI=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret_key
+   ```
+4. (Optional) Run the seed script to populate the database with initial data:
+   ```bash
+   npm run seed
+   ```
+5. Start the backend development server:
+   ```bash
+   npm run dev
+   ```
 
-**3. Frontend Setup (`/client`)**
-```bash
-cd client
-npm install
-npm run dev
-```
-*The React app will boot up in Vite on `http://localhost:5173`. Open it in your browser and start playing!*
+### 2. Frontend Setup
+1. Open a new terminal and navigate to the frontend directory:
+   ```bash
+   cd client
+   ```
+2. Install the required dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in the `client` directory if you need to override the default API endpoint:
+   ```env
+   VITE_GRAPHQL_URI=http://localhost:4000/graphql
+   VITE_WS_URI=ws://localhost:4000/graphql
+   ```
+4. Start the frontend Vite development server:
+   ```bash
+   npm run dev
+   ```
+5. Open your browser and navigate to the local URL provided by Vite (e.g., `http://localhost:5173`).
 
----
+## How to Play
 
-## 🎮 Gameplay Mechanics & Features
-
-**The Core Loop**: You are speeding down a dynamic, high-speed 3D tunnel. Various custom enemies and obstacles will hurdle toward your screen. Your goal is to aim precisely and click to destroy target threats to accrue points before time runs out, all while dodging the deadly mines.
-
-### Mechanics & Interactivity
-- 🎯 **Raycast Targeting**: The 3D engine uses precise hitbox centers to register your targeting. Click quickly and accurately.
-- 💥 **Forcefields**: Your defense system. Taking damage from mines drops your forcefield strength.
-- 🏆 **Dynamic Live Leaderboard**: After completing a level, your score automatically posts to the real-time GraphQL subscriptions leaderboard.
-
-### Custom Levels & Enemies
-The game escalates through 3 uniquely crafted difficulty levels, bringing out custom 3D models and increasingly dangerous bosses.
-
-*Across all levels, **Avoid Space Mines**. Clicking a mine results in a **15 point penalty** and the **loss of 1 Forcefield**.*
-
-#### **Level 1**
-An introductory flight through standard cosmic debris. Perfect for getting your bearings and practicing aim.
-- ☄️ **Meteor** (+10 Points)
-
-#### **Level 2**
-Things get spooky and bizarre as you encounter custom modeled spectral threats. Speed and complexity escalate.
-- 👻 **Ghost Boy** (+20 Points)
-- 👑 **King Boo** (+30 Points)
-
-#### **Level 3**
-The ultimate challenge. Incredible speeds and the highest value targets test your reflexes to their limit.
-- 🪓 **Chuck** (+50 Points)
-- ☠️ **The Boss** (+100 Points)
-
-*Can you beat the boss and claim the number one spot on the live leaderboard? Good luck!*
+1. **Launch & Select:** Launch the game and navigate to the mission selection page to choose your game mode and difficulty.
+2. **Movement:** Use **W/A/S/D** or the **Arrow Keys** to steer your spacecraft, dodging asteroids and adjusting your position in the 3D hyper-tunnel environment. 
+3. **Combat:** Use your **Mouse** to aim and **Left Click** or **Spacebar** to shoot down enemies (like Ghost Boy, King Boo, and Chuck) to rack up a high score.
+4. **Survive:** Avoid collision with geometry and enemies. The game progressively scales in difficulty by optimizing object spawn rates and increasing density.
