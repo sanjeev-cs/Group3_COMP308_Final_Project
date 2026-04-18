@@ -18,6 +18,16 @@ const SPAWN_Z = -200;
 const MISS_Z = 15;
 const SMOOTH = 0.12;
 const MOVEMENT_BOUND = TUNNEL_RADIUS - 1.5;
+const GAME_MODEL_PATHS = [
+  '/models/spaceship.glb',
+  '/models/fireball.glb',
+  '/models/meteor.glb',
+  '/models/mine.glb',
+  '/models/ghost_boy.glb',
+  '/models/king_boo.glb',
+  '/models/angrybird_red.glb',
+  '/models/angrybird_chuck.glb',
+];
 
 // ─── THE SPACE TUNNEL ENVIRONMENT ───────────────────────
 // ─── PLAYER SHIP ──────────────────────────────────
@@ -699,3 +709,7 @@ const GameCanvas = ({ onReady, className = '' }) => {
 };
 
 export default GameCanvas;
+
+GAME_MODEL_PATHS.forEach((path) => {
+  useGLTF.preload(path);
+});
