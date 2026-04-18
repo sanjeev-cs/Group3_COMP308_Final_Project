@@ -109,8 +109,7 @@ npm run dev
 - Mine: `-15` and combo reset when shot
 
 ### Weapon Rules
-- Level 1 fires one shot at a time
-- Levels 2 and 3 fire a short two-shot burst
+- Ship fires one shot at a time
 - Boss targets can require multiple hits depending on their health
 
 ## Progression
@@ -128,8 +127,6 @@ npm run dev
 - It is hidden during active gameplay and while the pause menu is open
 - It answers only Stellar Smash site and gameplay questions
 - The Groq key is stored on the backend only through `GROQ_API_KEY`
-- The server currently uses the Groq model `llama-3.3-70b-versatile` as a fixed backend default
-- If the backend does not have a Groq key yet, the chatbot fails gracefully with a friendly message
 
 ## Workflow
 
@@ -139,22 +136,3 @@ npm run dev
 4. Open the site in the browser
 5. Sign in or create an account
 6. Launch a mission, save results, and review progress on the dashboard and leaderboard
-
-## High-Level Flow
-
-```mermaid
-flowchart TD
-  A["Home"] --> B["Auth Modal"]
-  A --> C["Dashboard"]
-  C --> D["Mission Select"]
-  D --> E["Gameplay"]
-  E --> F["Pause Menu"]
-  E --> G["Result Screen"]
-  G --> C
-  C --> H["Leaderboard"]
-  C --> I["Profile Quick Modal"]
-  A --> J["Game Help Chatbot"]
-  C --> J
-  H --> J
-  D --> J
-```
