@@ -105,7 +105,7 @@ const GamePage = () => {
   }, [status]);
 
   useEffect(() => {
-    if (status === 'playing' && lives < previousLives.current) {
+    if (lives < previousLives.current) {
       playDamageSound();
     }
     previousLives.current = lives;
