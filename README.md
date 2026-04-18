@@ -5,7 +5,7 @@ Stellar Smash is a high-fidelity 3D space rail-shooter game built using modern w
 ## Tech Stack
 
 **Frontend:**
-- **React 18** (built with Vite)
+- **React**
 - **Three.js** & **React Three Fiber** (`@react-three/fiber`) for 3D rendering
 - **React Three Drei** for 3D abstractions and helpers
 - **Postprocessing** (`@react-three/postprocessing`) for high-fidelity visual effects like Bloom
