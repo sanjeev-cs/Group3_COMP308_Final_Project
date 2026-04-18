@@ -1,7 +1,10 @@
 .home-page {
   overflow: hidden;
   position: relative;
-  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--navbar-height));
+  min-height: calc(100dvh - var(--navbar-height));
 }
 
 .home-scene {
@@ -11,7 +14,7 @@
 }
 
 .hero {
-  min-height: calc(100vh - 64px);
+  flex: 1 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,7 +201,8 @@
 @media (max-width: 768px) {
   .home-page,
   .hero {
-    min-height: auto;
+    height: auto;
+    min-height: 0;
   }
 
   .hero {

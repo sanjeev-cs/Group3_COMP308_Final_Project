@@ -1,8 +1,20 @@
-.game-page { min-height: calc(100vh - 52px); }
+.game-page { min-height: calc(100dvh - var(--navbar-height)); }
 
 /* Active game */
 .game-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.mission-shell {
+  height: calc(100dvh - var(--navbar-height));
+}
+
+.mission-shell .page-shell-main {
+  overflow: hidden;
+}
+
+.mission-page {
+  min-height: 0;
 }
 
 .game-shell .page-shell-main {
@@ -18,7 +30,7 @@
 .game-active {
   position: relative;
   padding: 0;
-  height: 100vh;
+  height: 100dvh;
 }
 
 .game-active .game-canvas-wrapper {
@@ -206,7 +218,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100dvh - var(--navbar-height));
   padding: 1rem 1.5rem;
 }
 
@@ -281,6 +293,14 @@
 }
 
 @media (max-width: 768px) {
+  .mission-shell {
+    height: auto;
+  }
+
+  .mission-shell .page-shell-main {
+    overflow: visible;
+  }
+
   .mission-list {
     grid-template-columns: 1fr;
   }

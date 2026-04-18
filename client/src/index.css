@@ -1,4 +1,5 @@
 :root {
+  --navbar-height: 64px;
   --bg-deep: #060b14;
   --bg-surface: #151c28;
   --bg-surface-strong: #0e1520;
@@ -27,12 +28,12 @@ body {
     radial-gradient(circle at top, rgba(209, 161, 74, 0.08), transparent 22%),
     radial-gradient(circle at 78% 14%, rgba(76, 146, 161, 0.07), transparent 24%),
     linear-gradient(180deg, #0a111b 0%, #05080f 100%);
-  min-height: 100vh;
+  min-height: 100dvh;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-#root { min-height: 100vh; display: flex; flex-direction: column; }
+#root { min-height: 100dvh; display: flex; flex-direction: column; }
 
 a { color: var(--text-main); text-decoration: none; }
 a:hover { color: #ffffff; }
