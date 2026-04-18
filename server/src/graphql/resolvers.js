@@ -7,6 +7,7 @@ import Challenge from '../models/Challenge.js';
 import { ACHIEVEMENT_PRESETS, DEFAULT_ACHIEVEMENTS } from '../config/achievementPresets.js';
 import { ACTIVE_CHALLENGE_PRESET_MAP, ACTIVE_CHALLENGE_PRESETS } from '../config/challengePresets.js';
 import { AVATAR_OPTIONS } from '../config/avatarOptions.js';
+import assistantMutation from './assistantMutation.js';
 import { generateToken } from '../utils/jwt.js';
 import { assertValidPassword, buildInternalEmail, buildUsernameLookup } from '../utils/authCredentials.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -135,6 +136,8 @@ const resolvers = {
   // ─── Mutations ────────────────────────────────────────
 
   Mutation: {
+    ...assistantMutation,
+
     register: async (_, { input }) => {
       const { username, password, avatar } = input;
       const trimmedUsername = username.trim();

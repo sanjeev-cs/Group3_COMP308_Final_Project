@@ -1,6 +1,4 @@
 const typeDefs = `#graphql
-  # ─── Types ───────────────────────────────────────────────
-
   type User {
     id: ID!
     username: String!
@@ -99,7 +97,16 @@ const typeDefs = `#graphql
     level: Int!
   }
 
-  # ─── Inputs ──────────────────────────────────────────────
+  type AssistantLink {
+    label: String!
+    path: String!
+  }
+
+  type AssistantChatReply {
+    text: String!
+    available: Boolean!
+    suggestedLinks: [AssistantLink!]!
+  }
 
   input RegisterInput {
     username: String!
@@ -123,7 +130,15 @@ const typeDefs = `#graphql
     newPassword: String
   }
 
-  # ─── Queries ─────────────────────────────────────────────
+  input AssistantChatMessageInput {
+    role: String!
+    content: String!
+  }
+
+  input AssistantChatInput {
+    message: String!
+    history: [AssistantChatMessageInput!]
+  }
 
   type Query {
     me: User
@@ -137,8 +152,6 @@ const typeDefs = `#graphql
     getLevelProgress: LevelProgress
   }
 
-  # ─── Mutations ───────────────────────────────────────────
-
   type Mutation {
     register(input: RegisterInput!): AuthPayload!
     login(username: String!, password: String!): AuthPayload!
@@ -147,9 +160,8 @@ const typeDefs = `#graphql
     purchasePowerUp(powerUpId: String!): User!
     claimAchievement(key: String!): User!
     completeChallenge(challengeId: ID!): User!
+    askGameAssistant(input: AssistantChatInput!): AssistantChatReply!
   }
-
-  # ─── Subscriptions ──────────────────────────────────────
 
   type Subscription {
     scoreSubmitted(missionId: Int): LeaderboardEntry!
