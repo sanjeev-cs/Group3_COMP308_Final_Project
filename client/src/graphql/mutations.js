@@ -112,16 +112,3 @@ export const COMPLETE_CHALLENGE = gql`
     }
   }
 `;
-
-export const ASK_GAME_ASSISTANT = gql`
-  mutation AskGameAssistant($input: AssistantChatInput!) {
-    askGameAssistant(input: $input) {
-      text
-      available
-      suggestedLinks {
-        label
-        path
-      }
-    }
-  }
-`;

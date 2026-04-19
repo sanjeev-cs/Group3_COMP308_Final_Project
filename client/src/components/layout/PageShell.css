@@ -1,8 +1,6 @@
 .page-shell {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100dvh - var(--navbar-height));
+  min-height: calc(100vh - 64px);
   overflow: hidden;
 }
 
@@ -31,8 +29,7 @@
 .page-shell-main {
   position: relative;
   z-index: 1;
-  flex: 1 0 auto;
-  min-height: 0;
+  min-height: inherit;
   width: 100%;
   padding: 2rem 0 3rem;
 }

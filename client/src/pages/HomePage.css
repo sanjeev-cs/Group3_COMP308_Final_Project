@@ -1,10 +1,7 @@
 .home-page {
   overflow: hidden;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  height: calc(100dvh - var(--navbar-height));
-  min-height: calc(100dvh - var(--navbar-height));
+  min-height: calc(100vh - 64px);
 }
 
 .home-scene {
@@ -14,7 +11,7 @@
 }
 
 .hero {
-  flex: 1 0 auto;
+  min-height: calc(100vh - 64px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,6 +34,22 @@
   width: 100%;
   padding: 1rem 0;
   z-index: 1;
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.38rem 0.8rem;
+  margin-bottom: 1.1rem;
+  border-radius: 999px;
+  border: 1px solid #4d402a;
+  background: #1d1a14;
+  color: #ddbe7b;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .hero-title {
@@ -185,8 +198,7 @@
 @media (max-width: 768px) {
   .home-page,
   .hero {
-    height: auto;
-    min-height: 0;
+    min-height: auto;
   }
 
   .hero {
