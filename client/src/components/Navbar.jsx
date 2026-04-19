@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import useGameStore from '../store/gameStore.js';
+import useGameplayState from '../state/useGameplayState.js';
 import ProfileQuickModal from './profile/ProfileQuickModal.jsx';
 import './Navbar.css';
 
@@ -9,7 +9,7 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const gameStatus = useGameStore((state) => state.status);
+  const gameStatus = useGameplayState((state) => state.status);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
