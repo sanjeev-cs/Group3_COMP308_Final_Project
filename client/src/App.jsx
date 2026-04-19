@@ -3,6 +3,7 @@ import { ApolloProvider } from '@apollo/client';
 import client from './config/apollo.js';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import Navbar from './components/Navbar.jsx';
+import GameAssistantWidget from './components/assistant/GameAssistantWidget.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 // Pages
@@ -20,6 +21,7 @@ const App = () => {
       <Router>
         <AuthProvider>
           <Navbar />
+          <GameAssistantWidget />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />

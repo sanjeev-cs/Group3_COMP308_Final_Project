@@ -3,6 +3,7 @@ const SOUND_FILES = {
   damage: '/audio/damage.wav',
   laser: '/audio/laser_shot.wav',
   explosion: '/audio/explosion.wav',
+  win: '/audio/win.wav',
 };
 
 let audioContext;
@@ -144,7 +145,7 @@ export const playShipImpactSound = () => {
 };
 
 export const playDamageSound = () => {
-  playBufferedSound(SOUND_FILES.damage, { volume: 0.5, playbackRate: 1 });
+  playBufferedSound(SOUND_FILES.damage, { volume: 0.78, playbackRate: 1 });
 };
 
 export const playUiConfirmSound = () => {
@@ -153,7 +154,7 @@ export const playUiConfirmSound = () => {
 
 export const playMissionEndSound = (status) => {
   if (status === 'completed') {
-    playBufferedSound(SOUND_FILES.explosion, { volume: 0.38, playbackRate: 0.92 });
+    playBufferedSound(SOUND_FILES.win, { volume: 0.52, playbackRate: 1 });
     return;
   }
 
