@@ -1,5 +1,5 @@
-import PageShell from '../components/layout/PageShell.jsx';
-import ProfileSettingsPanel from '../components/profile/ProfileSettingsPanel.jsx';
+import ProfileSettingsPanel from '../features/profile/components/ProfileSettingsPanel.jsx';
+import PageShell from '../shared/components/layout/PageShell.jsx';
 import './ProfilePage.css';
 
 const ProfilePage = () => (

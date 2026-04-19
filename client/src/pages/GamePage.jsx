@@ -2,14 +2,14 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
-import { useAuth } from '../contexts/AuthContext.jsx';
+import { useAuth } from '../features/auth/context/AuthContext.jsx';
+import { getMissionMeta } from '../features/game/constants/missionMeta.js';
+import { playDamageSound, playMissionEndSound, playUiConfirmSound, resumeGameAudio, setGameplayMusicEnabled } from '../features/game/audio/gameSoundManager.js';
+import GameCanvas from '../features/game/components/GameCanvas.jsx';
+import useGameplayState from '../features/game/state/useGameplayState.js';
 import { GET_MISSIONS } from '../graphql/queries.js';
 import { SAVE_GAME_RESULT } from '../graphql/mutations.js';
-import PageShell from '../components/layout/PageShell.jsx';
-import GameCanvas from '../components/game/GameCanvas.jsx';
-import useGameStore from '../store/gameStore.js';
-import { playDamageSound, playMissionEndSound, playUiConfirmSound, resumeGameAudio, setGameplayMusicEnabled } from '../components/game/gameSoundManager.js';
-import { getMissionMeta } from '../constants/missionMeta.js';
+import PageShell from '../shared/components/layout/PageShell.jsx';
 import './GamePage.css';
 
 const CONFIGS = {
@@ -51,16 +51,16 @@ const GamePage = () => {
   const { data } = useQuery(GET_MISSIONS);
   const missions = data?.getMissions || [];
 
-  const status = useGameStore((state) => state.status);
-  const score = useGameStore((state) => state.score);
-  const lives = useGameStore((state) => state.lives);
-  const maxCombo = useGameStore((state) => state.maxCombo);
-  const waves = useGameStore((state) => state.wavesCompleted);
-  const destroyed = useGameStore((state) => state.objectsDestroyed);
-  const missionId = useGameStore((state) => state.missionId);
-  const startMission = useGameStore((state) => state.startMission);
-  const reset = useGameStore((state) => state.reset);
-  const setStatus = useGameStore((state) => state.setStatus);
+  const status = useGameplayState((state) => state.status);
+  const score = useGameplayState((state) => state.score);
+  const lives = useGameplayState((state) => state.lives);
+  const maxCombo = useGameplayState((state) => state.maxCombo);
+  const waves = useGameplayState((state) => state.wavesCompleted);
+  const destroyed = useGameplayState((state) => state.objectsDestroyed);
+  const missionId = useGameplayState((state) => state.missionId);
+  const startMission = useGameplayState((state) => state.startMission);
+  const reset = useGameplayState((state) => state.reset);
+  const setStatus = useGameplayState((state) => state.setStatus);
 
   const previousStatus = useRef(status);
   const previousLives = useRef(lives);
