@@ -2,7 +2,9 @@
 
 Stellar Smash is a 3D browser space-survival game built with React, Three.js, GraphQL, and MongoDB. Players steer with the mouse, fire into a collapsing tunnel, survive mission waves, and track long-term progress through dashboard stats, achievements, and an overall leaderboard.
 
-The site now also includes a Groq-powered help chatbot in the bottom-right corner. It answers Stellar Smash gameplay and navigation questions and stays hidden during active gameplay and pause state so it does not interfere with the HUD.
+## Live App
+
+- Deployed app: https://group3-comp308-final-project-1.onrender.com/
 
 ## Tech Stack
 
