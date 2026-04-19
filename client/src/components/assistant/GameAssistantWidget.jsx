@@ -145,7 +145,7 @@ const GameAssistantWidget = () => {
   };
 
   return (
-    <div className="game-assistant">
+    <div className={`game-assistant ${isOpen ? 'is-open' : ''}`}>
       {isOpen ? (
         <div className="game-assistant-panel" aria-live="polite">
           <div className="game-assistant-header">
@@ -242,7 +242,7 @@ const GameAssistantWidget = () => {
 
       <button
         type="button"
-        className="game-assistant-launcher"
+        className={`game-assistant-launcher ${isOpen ? 'is-open' : ''}`}
         onClick={() => setIsOpen((current) => !current)}
         aria-label={isOpen ? 'Close game help' : 'Open game help'}
         title="Groq help"

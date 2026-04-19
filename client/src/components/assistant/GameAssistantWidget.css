@@ -12,6 +12,7 @@
 .game-assistant-launcher {
   width: 58px;
   height: 58px;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -21,6 +22,50 @@
   color: #141a21;
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32);
   overflow: hidden;
+  cursor: pointer;
+  isolation: isolate;
+  transition:
+    transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease,
+    box-shadow 0.28s ease,
+    background 0.22s ease;
+}
+
+.game-assistant-launcher::before,
+.game-assistant-launcher::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.game-assistant-launcher::before {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12), transparent 48%);
+  opacity: 0.7;
+}
+
+.game-assistant-launcher::after {
+  inset: -5px;
+  border: 1px solid rgba(95, 133, 190, 0.2);
+  opacity: 0.55;
+  animation: assistant-launcher-orbit 3.6s ease-in-out infinite;
+}
+
+.game-assistant-launcher:hover {
+  transform: translateY(-2px) scale(1.03);
+  border-color: #42536d;
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.38);
+}
+
+.game-assistant-launcher:active {
+  transform: none;
+}
+
+.game-assistant-launcher.is-open {
+  background: #182233;
+  border-color: #4f6789;
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.42), 0 0 0 8px rgba(79, 103, 137, 0.1);
 }
 
 .game-assistant-launcher-logo {
@@ -29,12 +74,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1), filter 0.26s ease;
 }
 
 .game-assistant-launcher-logo svg {
   width: 100%;
   height: 100%;
   fill: #f4f7fb;
+}
+
+.game-assistant-launcher:hover .game-assistant-launcher-logo {
+  transform: scale(1.08) rotate(-8deg);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.14));
+}
+
+.game-assistant-launcher.is-open .game-assistant-launcher-logo {
+  transform: none;
 }
 
 .game-assistant-panel {
@@ -47,6 +104,8 @@
   background: #121924;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.48);
   overflow: hidden;
+  transform-origin: bottom right;
+  animation: assistant-panel-enter 0.34s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .game-assistant-header {
@@ -214,6 +273,35 @@
   color: #9dabc0;
 }
 
+@keyframes assistant-launcher-orbit {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.28;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 0.62;
+  }
+
+  100% {
+    transform: scale(0.92);
+    opacity: 0.28;
+  }
+}
+
+@keyframes assistant-panel-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 640px) {
   .game-assistant {
     right: 0.8rem;
@@ -229,5 +317,18 @@
 
   .game-assistant-launcher {
     align-self: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-assistant-launcher,
+  .game-assistant-launcher-logo,
+  .game-assistant-panel {
+    transition: none;
+    animation: none;
+  }
+
+  .game-assistant-launcher::after {
+    animation: none;
   }
 }
