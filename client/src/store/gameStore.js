@@ -12,10 +12,10 @@ const OBJECT_HEALTH = {
 };
 
 /**
- * Zustand state container for high-frequency gameplay state.
- * Kept outside the React render cycle for performance.
+ * Zustand store for high-frequency game state.
+ * Kept outside React render cycle for performance.
  */
-const useGameplayState = create((set, get) => ({
+const useGameStore = create((set, get) => ({
   // Game status
   status: 'idle', // idle | briefing | playing | paused | completed | failed
   missionId: null,
@@ -38,7 +38,8 @@ const useGameplayState = create((set, get) => ({
   gameObjects: [],
   nextObjectId: 1,
 
-  // Actions
+  // ─── Actions ──────────────────────────────────────────
+
   startMission: (missionId, config) => set({
     status: 'playing',
     missionId,
@@ -175,7 +176,7 @@ const useGameplayState = create((set, get) => ({
         set({ status: 'failed' });
       }
     } else {
-      // Energy, stardust, and mines disappear with no miss penalty.
+      // Energy/stardust/mine just disappear — no penalty for missing collectibles
       set({
         gameObjects: state.gameObjects.filter((o) => o.id !== id),
       });
@@ -219,4 +220,4 @@ const useGameplayState = create((set, get) => ({
   }),
 }));
 
-export default useGameplayState;
+export default useGameStore;

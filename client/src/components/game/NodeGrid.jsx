@@ -1,7 +1,7 @@
 import { useRef, useCallback, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import useGameplayState from '../../state/useGameplayState.js';
+import useGameStore from '../../store/gameStore.js';
 import Node from './Node.jsx';
 import Explosion from './Explosion.jsx';
 
@@ -14,14 +14,14 @@ const OBJECT_TYPES = [
 ];
 
 const NodeGrid = () => {
-  const status = useGameplayState((s) => s.status);
-  const gameObjects = useGameplayState((s) => s.gameObjects);
-  const missionConfig = useGameplayState((s) => s.missionConfig);
-  const currentWave = useGameplayState((s) => s.currentWave);
-  const tick = useGameplayState((s) => s.tick);
-  const spawnObject = useGameplayState((s) => s.spawnObject);
-  const advanceWave = useGameplayState((s) => s.advanceWave);
-  const missObject = useGameplayState((s) => s.missObject);
+  const status = useGameStore((s) => s.status);
+  const gameObjects = useGameStore((s) => s.gameObjects);
+  const missionConfig = useGameStore((s) => s.missionConfig);
+  const currentWave = useGameStore((s) => s.currentWave);
+  const tick = useGameStore((s) => s.tick);
+  const spawnObject = useGameStore((s) => s.spawnObject);
+  const advanceWave = useGameStore((s) => s.advanceWave);
+  const missObject = useGameStore((s) => s.missObject);
 
   const spawnTimerRef = useRef(0);
   const [explosions, setExplosions] = useState([]);

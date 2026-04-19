@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useApolloClient } from '@apollo/client';
 import { GET_ME } from '../graphql/queries.js';
-import useGameplayState from '../state/useGameplayState.js';
+import useGameStore from '../store/gameStore.js';
 import useLiveQuery from '../hooks/useLiveQuery.js';
 
 const AuthContext = createContext(null);
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     setAuthLoading(false);
-      useGameplayState.getState().reset();
+    useGameStore.getState().reset();
     client.resetStore();
   }, [client]);
 

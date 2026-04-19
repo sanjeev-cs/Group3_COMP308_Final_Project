@@ -2,7 +2,7 @@ import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, Clone, useAnimations, Center } from '@react-three/drei';
 import * as THREE from 'three';
-import useGameplayState from '../../state/useGameplayState.js';
+import useGameStore from '../../store/gameStore.js';
 import HUD from './HUD.jsx';
 import FireballEffect from './FireballEffect.jsx';
 import SpaceTunnel from './SpaceTunnel.jsx';
@@ -23,7 +23,7 @@ const MOVEMENT_BOUND = TUNNEL_RADIUS - 1.5;
 // ─── PLAYER SHIP ──────────────────────────────────
 const Ship = ({ targetRef, positionRef }) => {
   const group = useRef();
-  const isPlaying = useGameplayState((state) => state.status === 'playing');
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   // We use useGLTF without caching locally for simplicity. It handles its own caching.
   const { scene } = useGLTF('/models/spaceship.glb');
   const clone = useMemo(() => scene.clone(true), [scene]);
@@ -67,7 +67,7 @@ const Ship = ({ targetRef, positionRef }) => {
 
 const Crosshair3D = ({ posRef }) => {
   const ref = useRef();
-  const isPlaying = useGameplayState((state) => state.status === 'playing');
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   useFrame(() => {
     if (!isPlaying) return;
     if (ref.current) {
@@ -147,7 +147,7 @@ const BulletModel = () => {
 
 const Bullet = ({ id, x, y, z, direction, onDone, registerTarget }) => {
   const ref = useRef();
-  const isPlaying = useGameplayState((state) => state.status === 'playing');
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   const travelDirection = useMemo(
     () => new THREE.Vector3(direction[0], direction[1], direction[2]).normalize(),
     [direction],
@@ -229,7 +229,7 @@ const ChuckModel    = ({ scale }) => { const { scene } = useGLTF('/models/angryb
 
 const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
   const ref = useRef();
-  const isPlaying = useGameplayState((state) => state.status === 'playing');
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   const normalizedType = ['red', 'angrybird_red'].includes(type) ? 'boss' : type;
   const cfg = TYPES[normalizedType] || TYPES.meteor;
   const alive = useRef(true);
@@ -301,7 +301,7 @@ const Enemy = ({ id, type, px, py, pz, speed, onMiss, registerTarget }) => {
 
 const Boom = ({ x, y, z, color }) => {
   const ref = useRef();
-  const isPlaying = useGameplayState((state) => state.status === 'playing');
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   const age = useRef(0);
   const [alive, setAlive] = useState(true);
   const N = 15;
@@ -348,14 +348,14 @@ const Boom = ({ x, y, z, color }) => {
 // ─── GAME LOGIC MGR ───────────────────────────────
 
 const GameLogic = ({ shipPos, aimPos }) => {
-const status = useGameplayState(s=>s.status);
-const cfg    = useGameplayState(s=>s.missionConfig);
-const spawn  = useGameplayState(s=>s.spawnObject);
-const hit    = useGameplayState(s=>s.hitObject);
-const miss   = useGameplayState(s=>s.missObject);
-const tick   = useGameplayState(s=>s.tick);
-const adv    = useGameplayState(s=>s.advanceWave);
-const objs   = useGameplayState(s=>s.gameObjects);
+  const status = useGameStore(s=>s.status);
+  const cfg    = useGameStore(s=>s.missionConfig);
+  const spawn  = useGameStore(s=>s.spawnObject);
+  const hit    = useGameStore(s=>s.hitObject);
+  const miss   = useGameStore(s=>s.missObject);
+  const tick   = useGameStore(s=>s.tick);
+  const adv    = useGameStore(s=>s.advanceWave);
+  const objs   = useGameStore(s=>s.gameObjects);
   const objectIndex = useMemo(
     () => new Map(objs.map((object) => [object.id, object])),
     [objs],
@@ -569,7 +569,7 @@ const objs   = useGameplayState(s=>s.gameObjects);
 
 // ─── MOUSE LISTENER ───────────────────────────────
 const MouseControls = ({ shipTargetRef, aimRef, pointerRef }) => {
-const isPlaying = useGameplayState((state) => state.status === 'playing');
+  const isPlaying = useGameStore((state) => state.status === 'playing');
   useFrame(({ mouse, camera, viewport }) => {
     if (!isPlaying) return;
     const shipBounds = getVisibleMovementBounds(viewport, camera, SHIP_Z, MOVEMENT_BOUND);

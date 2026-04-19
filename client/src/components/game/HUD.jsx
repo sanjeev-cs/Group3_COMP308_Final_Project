@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
-import useGameplayState from '../../state/useGameplayState.js';
+import useGameStore from '../../store/gameStore.js';
 import './HUD.css';
 
 const HUD = () => {
-  const score = useGameplayState((state) => state.score);
-  const combo = useGameplayState((state) => state.combo);
-  const lives = useGameplayState((state) => state.lives);
-  const time = useGameplayState((state) => state.timeRemaining);
-  const status = useGameplayState((state) => state.status);
-  const destroyed = useGameplayState((state) => state.objectsDestroyed);
+  const score = useGameStore((state) => state.score);
+  const combo = useGameStore((state) => state.combo);
+  const lives = useGameStore((state) => state.lives);
+  const time = useGameStore((state) => state.timeRemaining);
+  const status = useGameStore((state) => state.status);
+  const destroyed = useGameStore((state) => state.objectsDestroyed);
 
   const [popups, setPopups] = useState([]);
   const previousScore = useRef(0);
