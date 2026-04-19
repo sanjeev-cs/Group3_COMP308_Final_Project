@@ -24,7 +24,9 @@ const Navbar = () => {
     <nav className="navbar" id="main-navbar">
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand">
-          <span className="brand-dot" />
+          <span className="brand-mark" aria-hidden="true">
+            <img src="/logo.png" alt="" className="brand-logo" />
+          </span>
           <span className="brand-text">Stellar Smash</span>
         </Link>
         <div className="navbar-links">

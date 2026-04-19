@@ -39,22 +39,6 @@
   z-index: 1;
 }
 
-.hero-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.38rem 0.8rem;
-  margin-bottom: 1.1rem;
-  border-radius: 999px;
-  border: 1px solid #4d402a;
-  background: #1d1a14;
-  color: #ddbe7b;
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .hero-title {
   font-size: clamp(2rem, 5.9vw, 3.95rem);
   font-weight: 900;

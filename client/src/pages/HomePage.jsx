@@ -42,7 +42,6 @@ const HomePage = ({ authMode = null }) => {
       <section className="hero">
         <div className="hero-bg" />
         <div className="hero-content">
-          <span className="hero-kicker">Stellar Smash</span>
           <h1 className="hero-title">
             <span>Fly fast.</span>
             <span>Survive longer.</span>
