@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext.jsx';
+import { useAuth } from '../features/auth/context/AuthContext.jsx';
 import { GET_MY_PROGRESS, GET_LEVEL_PROGRESS } from '../graphql/queries.js';
-import PageShell from '../components/layout/PageShell.jsx';
-import XPBar from '../components/XPBar.jsx';
-import PlayerOverviewSections from '../components/player/PlayerOverviewSections.jsx';
-import { MISSION_ORDER, getMissionMeta } from '../constants/missionMeta.js';
+import PlayerOverviewSections from '../features/player/components/PlayerOverviewSections.jsx';
+import { MISSION_ORDER, getMissionMeta } from '../features/game/constants/missionMeta.js';
+import PageShell from '../shared/components/layout/PageShell.jsx';
+import XPBar from '../shared/components/ui/XPBar.jsx';
 import { GET_ACHIEVEMENTS } from '../graphql/queries.js';
-import useLiveQuery from '../hooks/useLiveQuery.js';
+import useLiveQuery from '../shared/hooks/useLiveQuery.js';
 import './DashboardPage.css';
 
 const DashboardPage = () => {

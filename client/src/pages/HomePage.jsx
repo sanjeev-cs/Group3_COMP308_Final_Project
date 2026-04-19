@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext.jsx';
-import AuthModal from '../components/auth/AuthModal.jsx';
-import UiSceneBackground from '../components/layout/UiSceneBackground.jsx';
-import { MISSION_ORDER, getMissionMeta } from '../constants/missionMeta.js';
+import AuthModal from '../features/auth/components/AuthModal.jsx';
+import { useAuth } from '../features/auth/context/AuthContext.jsx';
+import { MISSION_ORDER, getMissionMeta } from '../features/game/constants/missionMeta.js';
+import UiSceneBackground from '../shared/components/layout/UiSceneBackground.jsx';
 import './HomePage.css';
 
 const HomePage = ({ authMode = null }) => {

@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import client from './config/apollo.js';
-import { AuthProvider } from './contexts/AuthContext.jsx';
-import Navbar from './components/Navbar.jsx';
-import GameAssistantWidget from './components/assistant/GameAssistantWidget.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
+import { AuthProvider } from './features/auth/context/AuthContext.jsx';
+import GameAssistantWidget from './features/assistant/components/GameAssistantWidget.jsx';
+import ProtectedRoute from './shared/components/guards/ProtectedRoute.jsx';
+import Navbar from './shared/components/navigation/Navbar.jsx';
 
 // Pages
 import HomePage from './pages/HomePage.jsx';

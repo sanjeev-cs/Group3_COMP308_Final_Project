@@ -10,9 +10,9 @@ import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/use/ws';
 
 import connectDB from './config/db.js';
-import typeDefs from './graphql/typeDefs.js';
-import resolvers from './graphql/resolvers.js';
-import { getAuthContext } from './middleware/auth.js';
+import typeDefs from './graphql/schema/typeDefs.js';
+import resolvers from './graphql/resolvers/index.js';
+import { getAuthContext } from './security/authContext.js';
 
 const PORT = process.env.PORT || 4000;
 const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;

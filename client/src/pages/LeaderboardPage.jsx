@@ -1,8 +1,8 @@
-import { useAuth } from '../contexts/AuthContext.jsx';
+import { useAuth } from '../features/auth/context/AuthContext.jsx';
+import LeaderboardTable from '../features/leaderboard/components/LeaderboardTable.jsx';
 import { GET_LEADERBOARD } from '../graphql/queries.js';
-import LeaderboardTable from '../components/LeaderboardTable.jsx';
-import PageShell from '../components/layout/PageShell.jsx';
-import useLiveQuery from '../hooks/useLiveQuery.js';
+import PageShell from '../shared/components/layout/PageShell.jsx';
+import useLiveQuery from '../shared/hooks/useLiveQuery.js';
 import './LeaderboardPage.css';
 
 const LeaderboardPage = () => {

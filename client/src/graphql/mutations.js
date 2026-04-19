@@ -12,6 +12,14 @@ export const REGISTER = gql`
         level
         xp
         stardust
+        unlockedPowerUps
+        achievements
+        stats {
+          gamesPlayed
+          totalScore
+          highestCombo
+          totalAsteroidsDestroyed
+        }
       }
     }
   }
